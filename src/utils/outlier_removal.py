@@ -21,14 +21,14 @@ class OutlierRemovalInterface(ABC):
         pass
 
     @abstractmethod
-    def display_final_pcd(self):
+    def display_final_pc(self):
         pass
 
 
 class StatisticalOutlierRemoval(OutlierRemovalInterface):
     def __init__(self, pcd, nb_neighbors: int, std_ratio: float):
         self.pcd = pcd
-        self.neighbors = nb_neighbors
+        self.nb_neighbors = nb_neighbors
         self.std_ratio = std_ratio
         self.cl = None
         self.ind = None
@@ -37,11 +37,13 @@ class StatisticalOutlierRemoval(OutlierRemovalInterface):
         print("Statistical oulier removal")
         self.cl, self.ind = self.pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                                 std_ratio=self.std_ratio)
+        print("Finished!")
+        return self.cl, self.ind
 
     def display_in_out(self):
         display_inlier_outlier(self.cl, self.ind)
 
-    def display_final_pcd(self):
+    def display_final_pc(self):
         o3d.visualization.draw_geometries([self.cl])
 
 
@@ -54,12 +56,14 @@ class RadiusOutlierRemoval(OutlierRemovalInterface):
         self.ind = None
 
     def remove_outliers(self):
-        print("Statistical oulier removal")
+        print("Radius oulier removal")
         self.cl, self.ind = self.pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                            radius=self.radius)
+        print("Finished!")
+        return self.cl, self.ind
 
     def display_in_out(self):
-        display_inlier_outlier(self.cl, self.ind)
+            display_inlier_outlier(self.cl, self.ind)
 
-    def display_final_pcd(self):
+    def display_final_pc(self):
         o3d.visualization.draw_geometries([self.cl])

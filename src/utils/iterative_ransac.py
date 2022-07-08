@@ -15,8 +15,10 @@ class IterativeRANSAC:
         self.thresh = thresh
         self.debugging = debugging
         self.points = None
+        self.pcd_out = None
 
     def remove_planes(self):
+        print("Iterative RANSAC...")
         self.points = np.asarray(self.cloud.points)
 
         for i in range(self.n_planes):
@@ -27,18 +29,22 @@ class IterativeRANSAC:
             # Remove best inliers from overall pointcloud
             pcd_points = o3d.geometry.PointCloud()
             pcd_points.points = o3d.utility.Vector3dVector(self.points)
-            pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
+            self.pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
 
             # Display plane removal during debugging:
             if self.debugging:
-                o3d.visualization.draw_geometries([pcd_out])
+                o3d.visualization.draw_geometries([self.pcd_out])
 
-            self.points = np.asarray(pcd_out.points)
+            self.points = np.asarray(self.pcd_out.points)
 
-        return self.points
+        print("Finished!")
+        return self.pcd_out
 
-    def display_final_pointcloud(self):
-        display_pointcloud_from_array(self.points)
+    def display_final_pc(self):
+        if self.pcd_out:
+            o3d.visualization.draw_geometries([self.pcd_out])
+        else:
+            raise ValueError("You try to display an empty point cloud!")
 
 
 

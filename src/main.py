@@ -28,14 +28,22 @@ def main():
         except yaml.YAMLError as exc:
             print(exc)
 
-    data = DataLoader()
-    iran = IterativeRANSAC(data, configs['N_PLANES'], configs['THRESH'], configs['DEBUGGING'])
-    pcd = iran.remove_planes()
-    pcd_out = StatisticalOutlierRemoval(pcd, configs['NB_NEIGHBORS'], configs['STD_RATIO'])
-    pcd_out.display_final_pcd()
-
-
-    return pcd_out
+    directory = os.fsencode(setup.INT_DATA_DIR)
+    data = DataLoader(setup.INT_DATA_DIR, configs['DEBUG'])
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".ply"):
+            data = data.load_data(filename)
+            ransac = IterativeRANSAC(data,
+                                     configs['N_PLANES'],
+                                     configs['THRESH'],
+                                     configs['DEBUG'])
+            pcd = ransac.remove_planes()
+            pcd_out = StatisticalOutlierRemoval(pcd,
+                                                configs['OUT_REMOVAL']['STATS']['NB_NEIGHBORS'],
+                                                configs['OUT_REMOVAL']['STATS']['STD_RATIO'])
+            pcd_out.remove_outliers()
+            pcd_out.display_final_pc()
 
 
 if __name__ == '__main__':

@@ -14,7 +14,6 @@ def remove_indices(points, indices):
     return final_points
 
 
-
 # Display pointcloud from numpy array
 def display_pointcloud_from_array(points: np.ndarray):
     pcd_out = o3d.geometry.PointCloud()
