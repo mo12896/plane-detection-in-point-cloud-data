@@ -9,8 +9,9 @@ from src.system_setup import *
 
 
 class DataLoader:
-    def __init__(self, dir_path: str, voxel_size: float, debug: bool = False):
+    def __init__(self, dir_path: str, large_pc: int, voxel_size: float, debug: bool = False):
         self.dir_path = dir_path
+        self.large_pc = large_pc
         self.voxel_size = voxel_size
         self.debug = debug
 
@@ -19,13 +20,12 @@ class DataLoader:
         pcd = o3d.io.read_point_cloud(file_path)
 
         # Downsample large pointclouds, if specified
-        if len(pcd.points) > 500000 and self.voxel_size:
-            print(f"Downsampling {filename} of size {len(pcd.points)}...")
+        if len(pcd.points) > self.large_pc and self.voxel_size:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
-            print(f"New size is: {len(pcd.points)}")
+            print(f"{filename} has {len(pcd.points)} points after downsampling!")
 
-        if self.debug:
-            o3d.visualization.draw_geometries([pcd])
-            print(pcd)
+        #if self.debug:
+        #    o3d.visualization.draw_geometries([pcd])
+        #    print(pcd)
 
         return pcd

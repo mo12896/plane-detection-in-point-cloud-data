@@ -39,11 +39,12 @@ final_data_dir = setup.FINAL_DATA_DIR
 directory = os.fsencode(raw_data_dir)
 
 data = DataLoader(raw_data_dir,
-                      configs['DOWN_SAMPLING']['VOXEL_SIZE'],
-                      configs['DEBUG'])
+                  configs['HEURISTICS']['LARGE_PC'],
+                  configs['HEURISTICS']['VOXEL_SIZE'],
+                  configs['DEBUG'])
 
 ransac = IterativeRANSAC(int_data_dir,
-                         configs['N_PLANES'],
+                         configs['HEURISTICS']['PLANE_SIZE'],
                          configs['THRESH'],
                          configs['DEBUG'])
 
@@ -56,7 +57,6 @@ rm_outlier = StatisticalOutlierRemoval(final_data_dir,
 def process_single_pc(file):
     """Process single point cloud data file"""
 
-    # for file in os.listdir(directory):
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
         pcd = data.load_data(filename)
