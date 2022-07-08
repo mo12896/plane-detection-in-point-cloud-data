@@ -19,8 +19,8 @@ class DataLoader:
         file_path = os.path.join(self.dir_path, filename)
         pcd = o3d.io.read_point_cloud(file_path)
 
-        # Downsample large pointclouds, if specified
-        if len(pcd.points) > self.large_pc and self.voxel_size:
+        # Downsample large pointclouds into processing scope
+        while len(pcd.points) > self.large_pc and self.voxel_size:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
             print(f"{filename} has {len(pcd.points)} points after downsampling!")
 

@@ -70,7 +70,7 @@ def process_single_pc(file):
             return len(pcd_out.points)
 
 
-# Definition of multiprocessing interface
+# Multiprocessing interface
 def main():
     pool = Pool()
     pool.map(process_single_pc, os.listdir(directory))
