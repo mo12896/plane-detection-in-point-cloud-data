@@ -1,10 +1,6 @@
 import open3d as o3d
-import numpy as np
 import os
 from abc import ABC, abstractmethod
-from functools import lru_cache
-
-from open3d import JVisualizer
 
 from src.utils.utils import display_inlier_outlier, timer
 
@@ -39,7 +35,7 @@ class StatisticalOutlierRemoval(OutlierRemovalInterface):
     def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
         print("Statistical outlier removal")
         self.cl, self.ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
-                                                                std_ratio=self.std_ratio)
+                                                           std_ratio=self.std_ratio)
 
         data_path = os.path.join(self.data_dir, file)
         if not os.path.isfile(data_path):
@@ -66,7 +62,7 @@ class RadiusOutlierRemoval(OutlierRemovalInterface):
     def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
         print("Radius oulier removal")
         self.cl, self.ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
-                                                           radius=self.radius)
+                                                      radius=self.radius)
         data_path = os.path.join(self.data_dir, file)
         if not os.path.isfile(data_path):
             o3d.io.write_point_cloud(data_path, self.cl)
@@ -74,7 +70,7 @@ class RadiusOutlierRemoval(OutlierRemovalInterface):
         return self.cl, self.ind
 
     def display_in_out(self):
-            display_inlier_outlier(self.cl, self.ind)
+        display_inlier_outlier(self.cl, self.ind)
 
     def display_final_pc(self):
         o3d.visualization.draw_geometries([self.cl])

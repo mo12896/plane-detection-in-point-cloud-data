@@ -1,11 +1,5 @@
 import open3d as o3d
-import numpy as np
 import os
-from open3d import JVisualizer
-import pyransac3d as pyrsc
-from time import perf_counter
-
-from src.system_setup import *
 
 
 class DataLoader:
@@ -24,7 +18,7 @@ class DataLoader:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
             print(f"{filename} has {len(pcd.points)} points after downsampling!")
 
-        #if self.debug:
+        # if self.debug:
         #    o3d.visualization.draw_geometries([pcd])
         #    print(pcd)
 

@@ -1,10 +1,7 @@
 import open3d as o3d
 import numpy as np
 import os
-from open3d import JVisualizer
 import pyransac3d as pyrsc
-from functools import lru_cache
-
 
 from src.utils.utils import timer
 
