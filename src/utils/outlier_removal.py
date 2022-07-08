@@ -2,18 +2,20 @@ import open3d as o3d
 import numpy as np
 import os
 from abc import ABC, abstractmethod
+from functools import lru_cache
 
 from open3d import JVisualizer
 
-from utils import *
+from src.utils.utils import display_inlier_outlier, timer
 
 
+# Interface as abstract base class
 class OutlierRemovalInterface(ABC):
-    def __init__(self, pcd, *args, **kwargs):
-        super(OutlierRemovalInterface, self).__init__(pcd, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(OutlierRemovalInterface, self).__init__(*args, **kwargs)
 
     @abstractmethod
-    def remove_outliers(self):
+    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
         pass
 
     @abstractmethod
@@ -26,18 +28,23 @@ class OutlierRemovalInterface(ABC):
 
 
 class StatisticalOutlierRemoval(OutlierRemovalInterface):
-    def __init__(self, pcd, nb_neighbors: int, std_ratio: float):
-        self.pcd = pcd
+    def __init__(self, data_dir: str, nb_neighbors: int, std_ratio: float):
+        self.data_dir = data_dir
         self.nb_neighbors = nb_neighbors
         self.std_ratio = std_ratio
         self.cl = None
         self.ind = None
 
-    def remove_outliers(self):
-        print("Statistical oulier removal")
-        self.cl, self.ind = self.pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
+    @timer
+    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
+        print("Statistical outlier removal")
+        self.cl, self.ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                                 std_ratio=self.std_ratio)
-        print("Finished!")
+
+        data_path = os.path.join(self.data_dir, file)
+        if not os.path.isfile(data_path):
+            o3d.io.write_point_cloud(data_path, self.cl)
+
         return self.cl, self.ind
 
     def display_in_out(self):
@@ -48,18 +55,23 @@ class StatisticalOutlierRemoval(OutlierRemovalInterface):
 
 
 class RadiusOutlierRemoval(OutlierRemovalInterface):
-    def __init__(self, pcd, nb_points: int, radius: float):
-        self.pcd = pcd
+    def __init__(self, data_dir: str, nb_points: int, radius: float):
+        self.data_dir = data_dir
         self.nb_points = nb_points
         self.radius = radius
         self.cl = None
         self.ind = None
 
-    def remove_outliers(self):
+    @timer
+    @lru_cache
+    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
         print("Radius oulier removal")
-        self.cl, self.ind = self.pcd.remove_radius_outlier(nb_points=self.nb_points,
+        self.cl, self.ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                            radius=self.radius)
-        print("Finished!")
+        data_path = os.path.join(self.data_dir, file)
+        if not os.path.isfile(data_path):
+            o3d.io.write_point_cloud(data_path, self.cl)
+
         return self.cl, self.ind
 
     def display_in_out(self):

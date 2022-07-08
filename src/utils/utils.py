@@ -1,5 +1,10 @@
+import time
+
 import numpy as np
 import open3d as o3d
+from time import perf_counter
+import functools
+
 
 # own implementation of index removal
 # Note that it runs a little slower than the open3D select_by_index
@@ -31,3 +36,15 @@ def display_inlier_outlier(cloud, ind, verbose=False):
     outlier_cloud.paint_uniform_color([1, 0, 0])
     inlier_cloud.paint_uniform_color([0.8, 0.8, 0.8])
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
+
+
+# Timer decorator
+def timer(func):
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        start = perf_counter()
+        out = func(*args, **kwargs)
+        stop = perf_counter()
+        print(f"Elapsed time of function {func.__name__!r}: {stop-start} seconds!")
+        return out
+    return wrapper_timer

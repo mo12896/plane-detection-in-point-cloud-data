@@ -3,23 +3,25 @@ import numpy as np
 import os
 from open3d import JVisualizer
 import pyransac3d as pyrsc
-from time import perf_counter
+from functools import lru_cache
 
-from utils import *
+
+from src.utils.utils import timer
 
 
 class IterativeRANSAC:
-    def __init__(self, cloud, n_planes: int, thresh: float, debugging: bool = False):
-        self.cloud = cloud
+    def __init__(self, data_dir: str, n_planes: int, thresh: float, debugging: bool = False):
+        self.data_dir = data_dir
         self.n_planes = n_planes
         self.thresh = thresh
         self.debugging = debugging
         self.points = None
         self.pcd_out = None
 
-    def remove_planes(self):
+    @timer
+    def remove_planes(self, cloud: o3d.cpu.pybind.geometry.PointCloud, file: str):
         print("Iterative RANSAC...")
-        self.points = np.asarray(self.cloud.points)
+        self.points = np.asarray(cloud.points)
 
         for i in range(self.n_planes):
             # Find best plane using RANSAC
@@ -37,7 +39,10 @@ class IterativeRANSAC:
 
             self.points = np.asarray(self.pcd_out.points)
 
-        print("Finished!")
+        data_path = os.path.join(self.data_dir, file)
+        if not os.path.isfile(data_path):
+            o3d.io.write_point_cloud(data_path, self.pcd_out)
+
         return self.pcd_out
 
     def display_final_pc(self):
