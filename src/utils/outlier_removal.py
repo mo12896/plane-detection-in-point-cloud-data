@@ -63,7 +63,6 @@ class RadiusOutlierRemoval(OutlierRemovalInterface):
         self.ind = None
 
     @timer
-    @lru_cache
     def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
         print("Radius oulier removal")
         self.cl, self.ind = pcd.remove_radius_outlier(nb_points=self.nb_points,

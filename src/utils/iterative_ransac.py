@@ -10,11 +10,11 @@ from src.utils.utils import timer
 
 
 class IterativeRANSAC:
-    def __init__(self, data_dir: str, n_planes: int, thresh: float, debugging: bool = False):
+    def __init__(self, data_dir: str, n_planes: int, thresh: float, debug: bool = False):
         self.data_dir = data_dir
         self.n_planes = n_planes
         self.thresh = thresh
-        self.debugging = debugging
+        self.debug = debug
         self.points = None
         self.pcd_out = None
 
@@ -34,7 +34,7 @@ class IterativeRANSAC:
             self.pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
 
             # Display plane removal during debugging:
-            if self.debugging:
+            if self.debug:
                 o3d.visualization.draw_geometries([self.pcd_out])
 
             self.points = np.asarray(self.pcd_out.points)
