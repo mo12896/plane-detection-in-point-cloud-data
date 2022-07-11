@@ -4,3 +4,4 @@ conda activate pd
 pip install --upgrade pip
 pip install -r requirements.txt
 mkdir data data/raw data/intermediate data/final
+python -m ipykernel install --user --name=pd
