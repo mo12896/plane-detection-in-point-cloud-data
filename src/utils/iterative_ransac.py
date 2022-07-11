@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pyransac3d as pyrsc
 
-from src.utils.utils import timer
+from .utils import timer
 
 
 class IterativeRANSAC:

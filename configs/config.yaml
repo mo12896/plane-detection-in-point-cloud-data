@@ -1,4 +1,4 @@
-DEBUG: True
+DEBUG: False
 
 HEURISTICS:
   LARGE_PC: 500000

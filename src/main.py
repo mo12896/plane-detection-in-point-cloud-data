@@ -20,9 +20,21 @@ argparser.add_argument('--config',
                        default="config",
                        help="File for the iterative RANSAC configuration. Supported:\n"
                             "- config")
+argparser.add_argument('--clean',
+                       type=bool,
+                       default=True,
+                       help="Remove intermediate and final point cloud files from previous calls.")
+
 args = argparser.parse_args()
+
+"""Set up variables"""
 config_file = args.config + '.yaml'
 config_path = os.path.join(setup.CONFIG_DIR, config_file)
+
+raw_data_dir = setup.RAW_DATA_DIR
+int_data_dir = setup.INT_DATA_DIR
+final_data_dir = setup.FINAL_DATA_DIR
+directory = os.fsencode(raw_data_dir)
 
 """Parse the config.yaml into a python dict"""
 with open(config_path, 'r') as stream:
@@ -32,12 +44,14 @@ with open(config_path, 'r') as stream:
     except yaml.YAMLError as exc:
         print(exc)
 
-"""Set up variables and instantiate relevant objects"""
-raw_data_dir = setup.RAW_DATA_DIR
-int_data_dir = setup.INT_DATA_DIR
-final_data_dir = setup.FINAL_DATA_DIR
-directory = os.fsencode(raw_data_dir)
+"""Clean up the intermediate and final directories"""
+if args.clean:
+    for f in os.listdir(int_data_dir):
+        os.remove(os.path.join(int_data_dir, f))
+    for f in os.listdir(final_data_dir):
+        os.remove(os.path.join(final_data_dir, f))
 
+"""Instantiate relevant objects"""
 data = DataLoader(raw_data_dir,
                   configs['HEURISTICS']['LARGE_PC'],
                   configs['HEURISTICS']['VOXEL_SIZE'],

@@ -2,7 +2,7 @@ import open3d as o3d
 import os
 from abc import ABC, abstractmethod
 
-from src.utils.utils import display_inlier_outlier, timer
+from .utils import display_inlier_outlier, timer
 
 
 # Interface as abstract base class
