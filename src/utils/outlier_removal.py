@@ -11,7 +11,7 @@ class OutlierRemovalInterface(ABC):
         super(OutlierRemovalInterface, self).__init__(*args, **kwargs)
 
     @abstractmethod
-    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
+    def remove_outliers(self, pcd, file: str):
         pass
 
     @abstractmethod
@@ -32,7 +32,7 @@ class StatisticalOutlierRemoval(OutlierRemovalInterface):
         self.ind = None
 
     @timer
-    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
+    def remove_outliers(self, pcd, file: str):
         print("Statistical outlier removal")
         self.cl, self.ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                            std_ratio=self.std_ratio)
@@ -59,7 +59,7 @@ class RadiusOutlierRemoval(OutlierRemovalInterface):
         self.ind = None
 
     @timer
-    def remove_outliers(self, pcd: o3d.cpu.pybind.geometry.PointCloud, file: str):
+    def remove_outliers(self, pcd, file: str):
         print("Radius oulier removal")
         self.cl, self.ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                       radius=self.radius)

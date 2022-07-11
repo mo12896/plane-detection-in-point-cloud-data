@@ -16,9 +16,10 @@ class DataLoader:
         # Downsample large pointclouds into processing scope
         while len(pcd.points) > self.large_pc and self.voxel_size:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
+            self.voxel_size=self.voxel_size+0.001
             print(f"{filename} has {len(pcd.points)} points after downsampling!")
 
-        # if self.debug:
+        #if self.debug:
         #    o3d.visualization.draw_geometries([pcd])
         #    print(pcd)
 

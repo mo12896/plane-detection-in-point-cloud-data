@@ -18,7 +18,7 @@ class IterativeRANSAC:
         self.planes = []
 
     @timer
-    def remove_planes(self, cloud: o3d.cpu.pybind.geometry.PointCloud, file: str):
+    def remove_planes(self, cloud, file: str):
         print("Iterative RANSAC...")
         self.points = np.asarray(cloud.points)
 
