@@ -1,4 +1,4 @@
-# TODO: does not work
+#!/bin/bash
 conda create -n pd python=3.8
 conda activate pd
 pip install --upgrade pip
