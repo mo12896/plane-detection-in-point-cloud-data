@@ -19,8 +19,8 @@ class DataLoader:
             self.voxel_size=self.voxel_size+0.001
             print(f"{filename} has {len(pcd.points)} points after downsampling!")
 
-        #if self.debug:
-        #    o3d.visualization.draw_geometries([pcd])
-        #    print(pcd)
+        # if self.debug:
+        #     o3d.visualization.draw_geometries([pcd])
+        #     print(pcd)
 
         return pcd
