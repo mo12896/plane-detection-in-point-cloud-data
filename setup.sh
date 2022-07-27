@@ -2,6 +2,9 @@
 
 # pull image from docker hub
 docker pull mo12896/ransac
+# define the data dir variable
+data="/data"
+curr_dir="$PWD"
+data_dir=$curr_dir$data
 # run the image using bind mounts to the data directory
-local_data_dir="/home/moritz/PycharmProjects/plane-detection-in-point-cloud-data/data"
-docker run -v $local_data_dir:/home/data ransac
+docker run -v $data_dir:/home/data ransac
