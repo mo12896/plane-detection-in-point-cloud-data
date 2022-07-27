@@ -1,4 +1,6 @@
-BASE_DIR = '/home/moritz/PycharmProjects/plane-detection-in-point-cloud-data/'
+from os.path import dirname, abspath
+
+BASE_DIR = dirname(dirname(abspath(__file__))) + '/'
 
 # path to configs
 CONFIG_DIR = BASE_DIR + 'configs/'

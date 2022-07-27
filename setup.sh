@@ -1,7 +1,6 @@
 #!/bin/bash
-conda create -n pd python=3.8
-conda activate pd
-pip install --upgrade pip
-pip install -r requirements.txt
-mkdir data data/raw data/intermediate data/final
-python -m ipykernel install --user --name=pd
+
+# pull image from docker hub
+docker pull ransac
+# run the image using bind mounts to the data directory
+docker run -v /home/moritz/PycharmProjects/plane-detection-in-point-cloud-data/data:/home/data ransac
