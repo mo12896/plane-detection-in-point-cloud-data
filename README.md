@@ -38,4 +38,4 @@ Simply run the setup.sh, when you cloned the repository from Github. Otherwise, 
 
 State | Raw                                    | Final                                    | 
 --- |----------------------------------------|------------------------------------------| 
-Pointclouds | <img src="docs/raw.png" width="500" /> | <img src="docs/final.png" width="452" /> | 
+Pointclouds | <img src="docs/raw.png" width="500" /> | <img src="docs/final.png" width="485" /> | 
