@@ -7,7 +7,7 @@ HEURISTICS:
 THRESH: 0.03
 
 OUT_REMOVAL:
-  Use: False
+  Use: True
   STATS:
     NB_NEIGHBORS: 3000
     STD_RATIO: 0.3
