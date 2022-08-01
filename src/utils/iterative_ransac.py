@@ -2,7 +2,9 @@ import open3d as o3d
 import numpy as np
 import os
 import pyransac3d as pyrsc
+import pickle
 
+import system_setup as setup
 from .utils import timer
 
 
@@ -14,6 +16,8 @@ class IterativeRANSAC:
         self.debug = debug
         self.points = None
         self.pcd_out = None
+        self.file = None
+        self.eqs = []
         # For debugging only!
         self.planes = []
 
@@ -21,16 +25,18 @@ class IterativeRANSAC:
     def remove_planes(self, cloud, file: str):
         print("Iterative RANSAC...")
         self.points = np.asarray(cloud.points)
+        self.file = file
 
         plane_counter = 0
         while True:
             # Find best plane using RANSAC
             plane = pyrsc.Plane()
-            _, best_inliers = plane.fit(self.points, self.thresh)
+            best_eq, best_inliers = plane.fit(self.points, self.thresh)
 
             # Only remove planes larger than size heuristic
             if len(best_inliers) > self.plane_size:
                 plane_counter += 1
+                self.eqs.append(best_eq)
                 # Remove the best inliers from overall point cloud
                 pcd_points = o3d.geometry.PointCloud()
                 pcd_points.points = o3d.utility.Vector3dVector(self.points)
@@ -71,6 +77,19 @@ class IterativeRANSAC:
             o3d.visualization.draw_geometries([self.pcd_out])
         else:
             raise ValueError("You try to display an empty point cloud!")
+
+    def store_best_eqs(self):
+        if self.eqs:
+            file = self.file.split('.')[0] + "_best_eqs"
+            file_name = os.path.join(setup.LOGS_DIR, file)
+
+            if os.path.isfile(file_name):
+                os.remove(file_name)
+
+            with open(file_name, 'wb') as fp:
+                pickle.dump(self.eqs, fp)
+        else:
+            raise ValueError("No equations were extracted!")
 
 
 

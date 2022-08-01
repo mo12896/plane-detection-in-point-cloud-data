@@ -3,11 +3,13 @@ import os
 
 from multiprocessing import Pool
 from argparse import ArgumentParser
+import open3d as o3d
 
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
 from utils.dataset import DataLoader
 from utils.outlier_removal import StatisticalOutlierRemoval
+from utils.plane_removal import PlaneRemoval
 
 
 # Readable point cloud formats for Open3D
@@ -55,6 +57,7 @@ if args.clean:
 data = DataLoader(raw_data_dir,
                   configs['HEURISTICS']['LARGE_PC'],
                   configs['HEURISTICS']['VOXEL_SIZE'],
+                  configs['HEURISTICS']['VOXEL_STEP'],
                   configs['DEBUG'])
 
 ransac = IterativeRANSAC(int_data_dir,
@@ -75,21 +78,36 @@ def process_single_pc(file):
     if filename.endswith(pc_formats):
         pcd = data.load_data(filename)
         pcd_out = ransac.remove_planes(pcd, filename)
-        if configs['OUT_REMOVAL']['Use']:
-            pcd_final, _ = rm_outlier.remove_outliers(pcd_out, filename)
+        ransac.store_best_eqs()
+        if configs['OUT_REMOVAL']['USE']:
+            rm_outlier.remove_outliers(pcd_out, filename)
             rm_outlier.display_final_pc()
-            return len(pcd_final.points)
         else:
             ransac.display_final_pc()
-            return len(pcd_out.points)
 
 
-# Multiprocessing interface
 def main():
+    # Multiprocessing interface
     pool = Pool()
     pool.map(process_single_pc, os.listdir(directory))
     pool.close()
     pool.join()
+
+    # plane removal in original point cloud data
+    # TODO: Implement in multiprocessing manner
+    if configs['RAW_REMOVAL']['USE']:
+        cloud = PlaneRemoval(
+            setup.LOGS_DIR,
+            configs['RAW_REMOVAL']['THRESH']
+        )
+
+        for file in os.listdir(raw_data_dir):
+            filename = os.fsdecode(file)
+            file_path = os.path.join(raw_data_dir, filename)
+            pcd = o3d.io.read_point_cloud(file_path)
+            eqs = filename.split('.')[0] + "_best_eqs"
+            #final_cloud = cloud.remove_planes(pcd, eqs)
+            cloud.remove_planes(pcd, eqs)
 
 
 if __name__ == '__main__':

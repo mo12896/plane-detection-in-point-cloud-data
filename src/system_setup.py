@@ -10,3 +10,6 @@ DATA_DIR = BASE_DIR + 'data/'
 RAW_DATA_DIR = DATA_DIR + 'raw/'
 INT_DATA_DIR = DATA_DIR + 'intermediate/'
 FINAL_DATA_DIR = DATA_DIR + 'final/'
+
+# path to logs
+LOGS_DIR = BASE_DIR + 'logs/'
