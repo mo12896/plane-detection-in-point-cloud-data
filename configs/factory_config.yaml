@@ -1,10 +1,15 @@
 DEBUG: True
+VERBOSE: False
+# set 'test' for debugging or 'raw' for production
+DATASET: 'raw'
 HEURISTICS:
-  LARGE_PC: 750000
   PLANE_SIZE: 10000
+  # bring pointcloud into scope
+  LARGE_PC: 750000
   VOXEL_SIZE: 0.025
   VOXEL_STEP: 0.0025
 
+# Hyperparameter for the RANSAC algorithm
 THRESH: 0.03
 
 RAW_REMOVAL:
@@ -14,8 +19,8 @@ RAW_REMOVAL:
 OUT_REMOVAL:
   USE: True
   STATS:
-    NB_NEIGHBORS: 500
-    STD_RATIO: 0.3
+    NB_NEIGHBORS: 100
+    STD_RATIO: 0.5
 
 
 

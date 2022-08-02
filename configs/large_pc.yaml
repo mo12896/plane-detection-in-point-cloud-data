@@ -6,6 +6,9 @@
 # portion of the plane intersections.
 
 DEBUG: True
+VERBOSE: False
+# set 'test' for debugging or 'raw' for production
+DATASET: 'raw'
 HEURISTICS:
   PLANE_SIZE: 12500
   # bring pointcloud into scope
@@ -13,7 +16,12 @@ HEURISTICS:
   VOXEL_SIZE: 0.05
   VOXEL_STEP: 0.02
 
+# Hyperparameter for the RANSAC algorithm
 THRESH: 0.075
+
+RAW_REMOVAL:
+  USE: True
+  THRESH: 0.05
 
 OUT_REMOVAL:
   USE: False
@@ -21,9 +29,6 @@ OUT_REMOVAL:
     NB_NEIGHBORS: 3000
     STD_RATIO: 0.1
 
-RAW_REMOVAL:
-  USE: True
-  THRESH: 0.05
 
 
 

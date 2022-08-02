@@ -9,7 +9,8 @@ import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
 from utils.dataset import DataLoader
 from utils.outlier_removal import StatisticalOutlierRemoval
-from utils.plane_removal import PostPlaneRemoval
+from utils.plane_removal import PlaneRemoval
+from utils.utils import timer
 
 
 # Readable point cloud formats for Open3D
@@ -29,14 +30,8 @@ argparser.add_argument('--clean',
 
 args = argparser.parse_args()
 
-"""Set up variables"""
 config_file = args.config + '.yaml'
 config_path = os.path.join(setup.CONFIG_DIR, config_file)
-
-raw_data_dir = setup.RAW_DATA_DIR
-int_data_dir = setup.INT_DATA_DIR
-final_data_dir = setup.FINAL_DATA_DIR
-directory = os.fsencode(raw_data_dir)
 
 """Parse the config.yaml into a python dict"""
 with open(config_path, 'r') as stream:
@@ -45,6 +40,18 @@ with open(config_path, 'r') as stream:
         print("Loaded config file!")
     except yaml.YAMLError as exc:
         print(exc)
+
+"""Set up variables"""
+if configs['DATASET'] == 'raw':
+    raw_data_dir = setup.RAW_DATA_DIR
+elif configs['DATASET'] == 'test':
+    raw_data_dir = setup.TEST_DATA_DIR
+else:
+    raise ValueError('The chosen data mode does not exist!')
+int_data_dir = setup.INT_DATA_DIR
+final_data_dir = setup.FINAL_DATA_DIR
+directory = os.fsencode(raw_data_dir)
+
 
 """Clean up the intermediate and final directories"""
 if args.clean:
@@ -59,7 +66,7 @@ data = DataLoader(
     configs['HEURISTICS']['LARGE_PC'],
     configs['HEURISTICS']['VOXEL_SIZE'],
     configs['HEURISTICS']['VOXEL_STEP'],
-    configs['DEBUG']
+    configs['VERBOSE']
 )
 
 ransac = IterativeRANSAC(
@@ -69,20 +76,20 @@ ransac = IterativeRANSAC(
     configs['DEBUG']
 )
 
+cloud_post = PlaneRemoval(
+    int_data_dir,
+    setup.LOGS_DIR,
+    configs['RAW_REMOVAL']['THRESH']
+)
+
 rm_outlier = StatisticalOutlierRemoval(
     final_data_dir,
     configs['OUT_REMOVAL']['STATS']['NB_NEIGHBORS'],
     configs['OUT_REMOVAL']['STATS']['STD_RATIO']
 )
 
-cloud_post = PostPlaneRemoval(
-    int_data_dir,
-    setup.LOGS_DIR,
-    configs['RAW_REMOVAL']['THRESH']
-)
 
-
-# Function to process a single point cloud data file
+# detect planes in a single point cloud
 def process_single_pc(file):
     """Process single point cloud data file"""
 
@@ -91,9 +98,11 @@ def process_single_pc(file):
         pcd = data.load_data(filename)
         ransac.remove_planes(pcd, filename)
         ransac.store_best_eqs()
-        ransac.display_final_pc()
+        if configs['VERBOSE']:
+            ransac.display_final_pc()
 
 
+# remove planes in a single point cloud
 def post_process_single_pc(file):
 
     filename = os.fsdecode(file)
@@ -102,50 +111,30 @@ def post_process_single_pc(file):
         pcd = o3d.io.read_point_cloud(file_path)
         eqs = filename.split('.')[0] + "_best_eqs"
         pcd_out = cloud_post.remove_planes(pcd, eqs)
-        cloud_post.display_final_pc()
 
         if configs['OUT_REMOVAL']['USE']:
+            if configs['VERBOSE']:
+                cloud_post.display_final_pc()
             rm_outlier.remove_outliers(pcd_out, filename)
             rm_outlier.display_final_pc()
         else:
             cloud_post.display_final_pc()
 
 
+@timer
 def main():
-    # Multiprocessing interface
+    # plane detection in downsampled point cloud data
     pool = Pool()
     pool.map(process_single_pc, os.listdir(directory))
     pool.close()
     pool.join()
 
-    # plane removal in original point cloud data
-    # TODO: Implement in multiprocessing manner
+    # plane removal from original point cloud data
     if configs['RAW_REMOVAL']['USE']:
-        cloud_post = PostPlaneRemoval(
-            int_data_dir,
-            setup.LOGS_DIR,
-            configs['RAW_REMOVAL']['THRESH']
-        )
-
         pool_post = Pool()
         pool_post.map(post_process_single_pc, os.listdir(directory))
         pool_post.close()
         pool_post.join()
-
-
-        #for file in os.listdir(raw_data_dir):
-        #    filename = os.fsdecode(file)
-        #    file_path = os.path.join(raw_data_dir, filename)
-        #    pcd = o3d.io.read_point_cloud(file_path)
-        #    eqs = filename.split('.')[0] + "_best_eqs"
-        #    pcd_out = cloud_post.remove_planes(pcd, eqs)
-        #    cloud_post.display_final_pc()
-
-        #    if configs['OUT_REMOVAL']['USE']:
-        #        rm_outlier.remove_outliers(pcd_out, filename)
-        #        rm_outlier.display_final_pc()
-        #    else:
-        #        cloud_post.display_final_pc()
 
 
 if __name__ == '__main__':

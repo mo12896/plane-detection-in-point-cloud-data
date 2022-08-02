@@ -6,7 +6,7 @@ import pickle
 from .utils import remove_by_indices, timer
 
 
-class PostPlaneRemoval:
+class PlaneRemoval:
     def __init__(self, data_dir: str, eqs_path: str, thresh: float, store: bool = True):
         self.data_dir = data_dir
         self.eqs_path = eqs_path
