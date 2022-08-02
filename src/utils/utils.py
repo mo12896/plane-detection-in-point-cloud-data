@@ -6,8 +6,7 @@ from time import perf_counter
 import functools
 
 
-# Remove sublistes in nested lists by index
-# Note that it runs a little slower than the open3D select_by_index
+# Remove sub-lists in nested lists by index
 def remove_by_indices(points: np.ndarray, indices: list):
     final_points = []
     index_set = set(indices)

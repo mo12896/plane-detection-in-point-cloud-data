@@ -42,6 +42,7 @@ with open(config_path, 'r') as stream:
         print(exc)
 
 """Set up variables"""
+logs_data_dir = setup.LOGS_DIR
 if configs['DATASET'] == 'raw':
     raw_data_dir = setup.RAW_DATA_DIR
 elif configs['DATASET'] == 'test':
@@ -52,13 +53,14 @@ int_data_dir = setup.INT_DATA_DIR
 final_data_dir = setup.FINAL_DATA_DIR
 directory = os.fsencode(raw_data_dir)
 
-
-"""Clean up the intermediate and final directories"""
+"""Clean up the directories"""
 if args.clean:
     for f in os.listdir(int_data_dir):
         os.remove(os.path.join(int_data_dir, f))
     for f in os.listdir(final_data_dir):
         os.remove(os.path.join(final_data_dir, f))
+    for f in os.listdir(final_data_dir):
+        os.remove(os.path.join(logs_data_dir, f))
 
 """Instantiate relevant objects"""
 data = DataLoader(
@@ -78,7 +80,7 @@ ransac = IterativeRANSAC(
 
 cloud_post = PlaneRemoval(
     int_data_dir,
-    setup.LOGS_DIR,
+    logs_data_dir,
     configs['RAW_REMOVAL']['THRESH']
 )
 
@@ -96,7 +98,7 @@ def process_single_pc(file):
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
         pcd = data.load_data(filename)
-        ransac.remove_planes(pcd, filename)
+        ransac.detect_planes(pcd, filename)
         ransac.store_best_eqs()
         if configs['VERBOSE']:
             ransac.display_final_pc()

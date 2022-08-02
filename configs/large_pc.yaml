@@ -1,24 +1,19 @@
-# Problem with large, sparse point cloud data:
-# It is hard to find an accurate tradeoff between minimal plane size
-# and the RANSAC threshold to filter out large plane geometries,
-# since multiple density clusters can share the same plane intersection!
-# Thus, we need smaller point cloud crops, where the plane data holds a larger
-# portion of the plane intersections.
-
 DEBUG: True
-VERBOSE: False
+VERBOSE: True
 # set 'test' for debugging or 'raw' for production
 DATASET: 'raw'
 HEURISTICS:
+  # minimal number of points considered for a plane
   PLANE_SIZE: 12500
-  # bring pointcloud into scope
+  # point cloud downsampling
   LARGE_PC: 1000000
   VOXEL_SIZE: 0.05
   VOXEL_STEP: 0.02
 
-# Hyperparameter for the RANSAC algorithm
+# hyperparameter for the RANSAC algorithm
 THRESH: 0.075
 
+# remove planes from original point cloud data
 RAW_REMOVAL:
   USE: True
   THRESH: 0.05
@@ -29,6 +24,13 @@ OUT_REMOVAL:
     NB_NEIGHBORS: 3000
     STD_RATIO: 0.1
 
+
+# Problem with large, sparse point cloud data:
+# It is hard to find an accurate tradeoff between minimal plane size
+# and the RANSAC threshold to filter out large plane geometries,
+# since multiple density clusters can share the same plane intersection!
+# Thus, we need smaller point cloud crops, where the plane data holds a larger
+# portion of the plane intersections.
 
 
 

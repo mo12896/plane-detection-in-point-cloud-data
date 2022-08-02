@@ -3,15 +3,17 @@ VERBOSE: False
 # set 'test' for debugging or 'raw' for production
 DATASET: 'raw'
 HEURISTICS:
-  PLANE_SIZE: 10000
-  # bring pointcloud into scope
+  # minimal number of points considered for a plane
+  PLANE_SIZE: 12000
+  # point cloud downsampling
   LARGE_PC: 750000
   VOXEL_SIZE: 0.025
   VOXEL_STEP: 0.0025
 
-# Hyperparameter for the RANSAC algorithm
+# hyperparameter for the RANSAC algorithm
 THRESH: 0.03
 
+# remove planes from original point cloud data
 RAW_REMOVAL:
   USE: True
   THRESH: 0.05
@@ -20,7 +22,7 @@ OUT_REMOVAL:
   USE: True
   STATS:
     NB_NEIGHBORS: 100
-    STD_RATIO: 0.5
+    STD_RATIO: 2.0
 
 
 

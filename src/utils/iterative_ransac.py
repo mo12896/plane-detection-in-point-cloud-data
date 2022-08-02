@@ -9,7 +9,11 @@ from .utils import timer
 
 
 class IterativeRANSAC:
-    def __init__(self, data_dir: str, plane_size: int, thresh: float, store: bool = False, debug: bool = False):
+    """
+    Iterative RANSAC algorithm to detect n planes based on minimal plane size, set by the user.
+    """
+
+    def __init__(self, data_dir: str, plane_size: int, thresh: float, debug: bool = False, store: bool = False):
         self.data_dir = data_dir
         self.plane_size = plane_size
         self.thresh = thresh
@@ -23,7 +27,7 @@ class IterativeRANSAC:
         self.planes = []
 
     @timer
-    def remove_planes(self, cloud, file: str):
+    def detect_planes(self, cloud, file: str):
         print("Iterative RANSAC...")
         self.points = np.asarray(cloud.points)
         self.file = file
@@ -91,7 +95,7 @@ class IterativeRANSAC:
             with open(file_name, 'wb') as fp:
                 pickle.dump(self.eqs, fp)
         else:
-            raise ValueError("No equations were extracted!")
+            raise ValueError("No plane equations were extracted!")
 
 
 

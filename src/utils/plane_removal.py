@@ -7,6 +7,11 @@ from .utils import remove_by_indices, timer
 
 
 class PlaneRemoval:
+    """
+    This the class for removing detected planes, based on the extracted plane equations from the
+    original point cloud data!
+    """
+
     def __init__(self, data_dir: str, eqs_path: str, thresh: float, store: bool = True):
         self.data_dir = data_dir
         self.eqs_path = eqs_path

@@ -21,7 +21,7 @@ git clone https://github.com/mo12896/plane-detection-in-point-cloud-data.git
 Next, set up the folder structure for the data:
 
 ```
-mkdir -p data data/raw data/intermediate data/final
+mkdir -p logs data data/raw data/intermediate data/final 
 ```
 
 within the cloned repository of your choice manually and place your point cloud data in the data/raw! 

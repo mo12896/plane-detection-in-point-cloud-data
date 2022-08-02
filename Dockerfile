@@ -9,7 +9,7 @@ RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN mkdir data data/raw data/intermediate data/final
+RUN mkdir logs data data/raw data/intermediate data/final
 
 COPY /src /home/app
 COPY /configs /home/configs

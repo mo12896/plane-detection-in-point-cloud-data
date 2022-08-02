@@ -16,7 +16,7 @@ class DataLoader:
         file_path = os.path.join(self.dir_path, filename)
         pcd = o3d.io.read_point_cloud(file_path)
 
-        # Downsample large pointclouds into processing scope
+        # Downsample large point clouds into user-defined processing scope
         while len(pcd.points) > self.large_pc and self.voxel_size:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
             self.voxel_size=self.voxel_size+self.voxel_step
