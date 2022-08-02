@@ -6,17 +6,17 @@ from time import perf_counter
 import functools
 
 
-# own implementation of index removal
+# Remove sublistes in nested lists by index
 # Note that it runs a little slower than the open3D select_by_index
-def remove_indices(points, indices):
+def remove_by_indices(points: np.ndarray, indices: list):
     final_points = []
     index_set = set(indices)
-    for point, coor in enumerate(points):
-        if index_set and point in index_set:
-            index_set.remove(point)
+    for idx, point in enumerate(points):
+        if index_set and idx in index_set:
+            index_set.remove(idx)
             continue
-        final_points.append(coor)
-    return final_points
+        final_points.append(point.tolist())
+    return np.asarray(final_points)
 
 
 # Display pointcloud from numpy array

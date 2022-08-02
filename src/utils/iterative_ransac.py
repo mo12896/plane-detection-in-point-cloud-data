@@ -9,10 +9,11 @@ from .utils import timer
 
 
 class IterativeRANSAC:
-    def __init__(self, data_dir: str, plane_size: int, thresh: float, debug: bool = False):
+    def __init__(self, data_dir: str, plane_size: int, thresh: float, store: bool = False, debug: bool = False):
         self.data_dir = data_dir
         self.plane_size = plane_size
         self.thresh = thresh
+        self.store = store
         self.debug = debug
         self.points = None
         self.pcd_out = None
@@ -65,11 +66,12 @@ class IterativeRANSAC:
             raise ValueError("No point cloud was generated!")
 
         # Store intermediate point cloud data
-        data_path = os.path.join(self.data_dir, file)
-        if not os.path.isfile(data_path):
-            o3d.io.write_point_cloud(data_path, self.pcd_out)
+        if self.store:
+            data_path = os.path.join(self.data_dir, file)
+            if not os.path.isfile(data_path):
+                o3d.io.write_point_cloud(data_path, self.pcd_out)
 
-        print(f"Removed {plane_counter} plane(s) from {file}")
+        print(f"Identified {plane_counter} plane(s) in point cloud '{file}'")
         return self.pcd_out
 
     def display_final_pc(self):

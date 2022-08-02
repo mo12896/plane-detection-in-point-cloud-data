@@ -9,7 +9,7 @@ import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
 from utils.dataset import DataLoader
 from utils.outlier_removal import StatisticalOutlierRemoval
-from utils.plane_removal import PlaneRemoval
+from utils.plane_removal import PostPlaneRemoval
 
 
 # Readable point cloud formats for Open3D
@@ -54,20 +54,32 @@ if args.clean:
         os.remove(os.path.join(final_data_dir, f))
 
 """Instantiate relevant objects"""
-data = DataLoader(raw_data_dir,
-                  configs['HEURISTICS']['LARGE_PC'],
-                  configs['HEURISTICS']['VOXEL_SIZE'],
-                  configs['HEURISTICS']['VOXEL_STEP'],
-                  configs['DEBUG'])
+data = DataLoader(
+    raw_data_dir,
+    configs['HEURISTICS']['LARGE_PC'],
+    configs['HEURISTICS']['VOXEL_SIZE'],
+    configs['HEURISTICS']['VOXEL_STEP'],
+    configs['DEBUG']
+)
 
-ransac = IterativeRANSAC(int_data_dir,
-                         configs['HEURISTICS']['PLANE_SIZE'],
-                         configs['THRESH'],
-                         configs['DEBUG'])
+ransac = IterativeRANSAC(
+    int_data_dir,
+    configs['HEURISTICS']['PLANE_SIZE'],
+    configs['THRESH'],
+    configs['DEBUG']
+)
 
-rm_outlier = StatisticalOutlierRemoval(final_data_dir,
-                                       configs['OUT_REMOVAL']['STATS']['NB_NEIGHBORS'],
-                                       configs['OUT_REMOVAL']['STATS']['STD_RATIO'])
+rm_outlier = StatisticalOutlierRemoval(
+    final_data_dir,
+    configs['OUT_REMOVAL']['STATS']['NB_NEIGHBORS'],
+    configs['OUT_REMOVAL']['STATS']['STD_RATIO']
+)
+
+cloud_post = PostPlaneRemoval(
+    int_data_dir,
+    setup.LOGS_DIR,
+    configs['RAW_REMOVAL']['THRESH']
+)
 
 
 # Function to process a single point cloud data file
@@ -77,13 +89,26 @@ def process_single_pc(file):
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
         pcd = data.load_data(filename)
-        pcd_out = ransac.remove_planes(pcd, filename)
+        ransac.remove_planes(pcd, filename)
         ransac.store_best_eqs()
+        ransac.display_final_pc()
+
+
+def post_process_single_pc(file):
+
+    filename = os.fsdecode(file)
+    if filename.endswith(pc_formats):
+        file_path = os.path.join(raw_data_dir, filename)
+        pcd = o3d.io.read_point_cloud(file_path)
+        eqs = filename.split('.')[0] + "_best_eqs"
+        pcd_out = cloud_post.remove_planes(pcd, eqs)
+        cloud_post.display_final_pc()
+
         if configs['OUT_REMOVAL']['USE']:
             rm_outlier.remove_outliers(pcd_out, filename)
             rm_outlier.display_final_pc()
         else:
-            ransac.display_final_pc()
+            cloud_post.display_final_pc()
 
 
 def main():
@@ -96,18 +121,31 @@ def main():
     # plane removal in original point cloud data
     # TODO: Implement in multiprocessing manner
     if configs['RAW_REMOVAL']['USE']:
-        cloud = PlaneRemoval(
+        cloud_post = PostPlaneRemoval(
+            int_data_dir,
             setup.LOGS_DIR,
             configs['RAW_REMOVAL']['THRESH']
         )
 
-        for file in os.listdir(raw_data_dir):
-            filename = os.fsdecode(file)
-            file_path = os.path.join(raw_data_dir, filename)
-            pcd = o3d.io.read_point_cloud(file_path)
-            eqs = filename.split('.')[0] + "_best_eqs"
-            #final_cloud = cloud.remove_planes(pcd, eqs)
-            cloud.remove_planes(pcd, eqs)
+        pool_post = Pool()
+        pool_post.map(post_process_single_pc, os.listdir(directory))
+        pool_post.close()
+        pool_post.join()
+
+
+        #for file in os.listdir(raw_data_dir):
+        #    filename = os.fsdecode(file)
+        #    file_path = os.path.join(raw_data_dir, filename)
+        #    pcd = o3d.io.read_point_cloud(file_path)
+        #    eqs = filename.split('.')[0] + "_best_eqs"
+        #    pcd_out = cloud_post.remove_planes(pcd, eqs)
+        #    cloud_post.display_final_pc()
+
+        #    if configs['OUT_REMOVAL']['USE']:
+        #        rm_outlier.remove_outliers(pcd_out, filename)
+        #        rm_outlier.display_final_pc()
+        #    else:
+        #        cloud_post.display_final_pc()
 
 
 if __name__ == '__main__':
