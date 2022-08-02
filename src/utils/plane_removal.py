@@ -12,16 +12,17 @@ class PlaneRemoval:
     original point cloud data!
     """
 
-    def __init__(self, data_dir: str, eqs_path: str, thresh: float, store: bool = True):
-        self.data_dir = data_dir
+    def __init__(self, out_dir: str, eqs_path: str, thresh: float, store: bool = True):
+        self.out_dir = out_dir
         self.eqs_path = eqs_path
         self.thresh = thresh
         self.store = store
         self.pcd_out = None
 
     @timer
-    def remove_planes(self, cloud, file):
+    def remove_planes(self, data_dir, file):
         print("Remove planes from original point cloud...")
+        cloud = o3d.io.read_point_cloud(data_dir)
         file_name = os.path.join(self.eqs_path, file)
 
         with open(file_name, 'rb') as fp:
@@ -47,7 +48,8 @@ class PlaneRemoval:
 
         # Store intermediate point cloud data
         if self.store:
-            data_path = os.path.join(self.data_dir, file)
+            file = file[:-9] + '.ply'
+            data_path = os.path.join(self.out_dir, file)
             if not os.path.isfile(data_path):
                 o3d.io.write_point_cloud(data_path, self.pcd_out)
 

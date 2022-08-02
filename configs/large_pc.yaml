@@ -20,9 +20,10 @@ RAW_REMOVAL:
 
 OUT_REMOVAL:
   USE: False
-  STATS:
-    NB_NEIGHBORS: 3000
-    STD_RATIO: 0.1
+  # Up to know, only 'StatisticalOutlierRemoval' or 'RadiusOutlierRemoval' are available
+  METHOD: 'StatisticalOutlierRemoval'
+  NB_NEIGHBORS: 3000
+  STD_RATIO: 0.1
 
 
 # Problem with large, sparse point cloud data:

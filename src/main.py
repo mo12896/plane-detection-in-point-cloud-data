@@ -8,7 +8,7 @@ import open3d as o3d
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
 from utils.dataset import DataLoader
-from utils.outlier_removal import StatisticalOutlierRemoval
+from utils.outlier_removal import Context, StatisticalOutlierRemoval, RadiusOutlierRemoval
 from utils.plane_removal import PlaneRemoval
 from utils.utils import timer
 
@@ -43,6 +43,7 @@ with open(config_path, 'r') as stream:
 
 """Set up variables"""
 logs_data_dir = setup.LOGS_DIR
+print(logs_data_dir)
 if configs['DATASET'] == 'raw':
     raw_data_dir = setup.RAW_DATA_DIR
 elif configs['DATASET'] == 'test':
@@ -59,7 +60,7 @@ if args.clean:
         os.remove(os.path.join(int_data_dir, f))
     for f in os.listdir(final_data_dir):
         os.remove(os.path.join(final_data_dir, f))
-    for f in os.listdir(final_data_dir):
+    for f in os.listdir(logs_data_dir):
         os.remove(os.path.join(logs_data_dir, f))
 
 """Instantiate relevant objects"""
@@ -84,13 +85,6 @@ cloud_post = PlaneRemoval(
     configs['RAW_REMOVAL']['THRESH']
 )
 
-rm_outlier = StatisticalOutlierRemoval(
-    final_data_dir,
-    configs['OUT_REMOVAL']['STATS']['NB_NEIGHBORS'],
-    configs['OUT_REMOVAL']['STATS']['STD_RATIO']
-)
-
-
 # detect planes in a single point cloud
 def process_single_pc(file):
     """Process single point cloud data file"""
@@ -110,15 +104,16 @@ def post_process_single_pc(file):
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
         file_path = os.path.join(raw_data_dir, filename)
-        pcd = o3d.io.read_point_cloud(file_path)
         eqs = filename.split('.')[0] + "_best_eqs"
-        pcd_out = cloud_post.remove_planes(pcd, eqs)
+        cloud_post.remove_planes(file_path, eqs)
 
         if configs['OUT_REMOVAL']['USE']:
             if configs['VERBOSE']:
                 cloud_post.display_final_pc()
-            rm_outlier.remove_outliers(pcd_out, filename)
-            rm_outlier.display_final_pc()
+            context = Context(eval(configs['OUT_REMOVAL']['METHOD'])(final_data_dir,
+                                                                     configs['OUT_REMOVAL']['NB_NEIGHBORS'],
+                                                                     configs['OUT_REMOVAL']['STD_RATIO']))
+            context.run(int_data_dir, filename, configs['DEBUG'])
         else:
             cloud_post.display_final_pc()
 

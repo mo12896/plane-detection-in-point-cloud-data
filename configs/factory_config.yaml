@@ -20,9 +20,10 @@ RAW_REMOVAL:
 
 OUT_REMOVAL:
   USE: True
-  STATS:
-    NB_NEIGHBORS: 100
-    STD_RATIO: 2.0
+  # Up to know, only 'StatisticalOutlierRemoval' or 'RadiusOutlierRemoval' are available
+  METHOD: 'StatisticalOutlierRemoval'
+  NB_NEIGHBORS: 100
+  STD_RATIO: 2.0
 
 
 

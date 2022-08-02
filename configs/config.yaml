@@ -1,4 +1,4 @@
-DEBUG: False
+DEBUG: True
 VERBOSE: False
 # set 'test' for debugging or 'raw' for production
 DATASET: 'test'
@@ -20,12 +20,11 @@ RAW_REMOVAL:
 
 OUT_REMOVAL:
   USE: True
-  STATS:
-    NB_NEIGHBORS: 3000
-    STD_RATIO: 2.0
-  # GEOMETRY:
-  #   NB_POINTS: 16
-  #   RADIUS: 0.05
+  # Up to know, only 'StatisticalOutlierRemoval' or 'RadiusOutlierRemoval' are available
+  METHOD: 'StatisticalOutlierRemoval'
+  NB_NEIGHBORS: 3000
+  STD_RATIO: 2.0
+
 
 
 
