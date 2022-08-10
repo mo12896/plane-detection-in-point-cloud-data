@@ -59,8 +59,11 @@ class StatisticalOutlierRemoval(OutlierRemoval):
     @timer
     def remove_outliers(self, data_dir, file: str):
         print("Statistical outlier removal...")
-        file_path = os.path.join(data_dir, file)
-        pcd = o3d.io.read_point_cloud(file_path)
+        try:
+            file_path = os.path.join(data_dir, file)
+            pcd = o3d.io.read_point_cloud(file_path)
+        except:
+            print(f"File {file} could not be loaded!")
 
         self.cl, self.ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                            std_ratio=self.std_ratio)
@@ -89,8 +92,11 @@ class RadiusOutlierRemoval(OutlierRemoval):
     @timer
     def remove_outliers(self, data_dir, file: str):
         print("Radius outlier removal...")
-        file_path = os.path.join(data_dir, file)
-        pcd = o3d.io.read_point_cloud(file_path)
+        try:
+            file_path = os.path.join(data_dir, file)
+            pcd = o3d.io.read_point_cloud(file_path)
+        except:
+            print(f"File {file} could not be loaded!")
 
         self.cl, self.ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                       radius=self.radius)

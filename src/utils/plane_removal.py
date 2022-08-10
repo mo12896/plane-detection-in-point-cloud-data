@@ -12,23 +12,37 @@ class PlaneRemoval:
     original point cloud data!
     """
 
-    def __init__(self, out_dir: str, eqs_path: str, thresh: float, store: bool = True):
+    def __init__(self, in_dir: str, out_dir: str, eqs_dir: str, thresh: float, store: bool = True):
+        self.in_dir = in_dir
         self.out_dir = out_dir
-        self.eqs_path = eqs_path
+        self.eqs_dir = eqs_dir
         self.thresh = thresh
         self.store = store
         self.pcd_out = None
 
     @timer
-    def remove_planes(self, data_dir, file):
+    def remove_planes(self, file):
         print("Remove planes from original point cloud...")
-        cloud = o3d.io.read_point_cloud(data_dir)
-        file_name = os.path.join(self.eqs_path, file)
+        # Read the point cloud from raw directory
+        try:
+            file_path = os.path.join(self.in_dir, file)
+            cloud = o3d.io.read_point_cloud(file_path)
+        except:
+            print(f"File {file} could not be loaded!")
 
-        with open(file_name, 'rb') as fp:
-            best_eqs = pickle.load(fp)
+        # Read the equations as python list
+        try:
+            eqs = file.split('.')[0] + "_best_eqs"
+            eqs_path = os.path.join(self.eqs_dir, eqs)
+            
+            with open(eqs_path, 'rb') as fp:
+                best_eqs = pickle.load(fp)
+        except:
+            print(f"File {eqs} could not be loaded!")
 
         pts = np.asarray(cloud.points)
+
+        # Remove the planes from original point cloud
         for plane_eq in best_eqs:
             dist_pts = (plane_eq[0] * pts[:, 0] + plane_eq[1] * pts[:, 1] + plane_eq[2] * pts[:, 2] + plane_eq[3]
                       ) / np.sqrt(plane_eq[0] ** 2 + plane_eq[1] ** 2 + plane_eq[2] ** 2)
@@ -38,6 +52,7 @@ class PlaneRemoval:
         self.pcd_out = o3d.geometry.PointCloud()
         self.pcd_out.points = o3d.utility.Vector3dVector(pts)
 
+        # Retain color information for final point cloud
         if self.pcd_out:
             dists = cloud.compute_point_cloud_distance(self.pcd_out)
             dists = np.asarray(dists)
@@ -48,7 +63,6 @@ class PlaneRemoval:
 
         # Store intermediate point cloud data
         if self.store:
-            file = file[:-9] + '.ply'
             data_path = os.path.join(self.out_dir, file)
             if not os.path.isfile(data_path):
                 o3d.io.write_point_cloud(data_path, self.pcd_out)

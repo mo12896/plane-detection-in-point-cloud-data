@@ -31,9 +31,13 @@ class IterativeRANSAC:
     @timer
     def detect_planes(self, file: str):
         print("Iterative RANSAC...")
-        cloud = self.dataloader.load_data(file)
+        # Read the point cloud from raw directory
+        try:
+            cloud = self.dataloader.load_data(file)
+        except:
+            print(f"File {file} could not be loaded!")
+
         self.points = np.asarray(cloud.points)
-        self.file = file
 
         plane_counter = 0
         while True:
@@ -87,9 +91,9 @@ class IterativeRANSAC:
         else:
             raise ValueError("You try to display an empty point cloud!")
 
-    def store_best_eqs(self):
+    def store_best_eqs(self, file: str):
         if self.eqs:
-            file = self.file.split('.')[0] + "_best_eqs"
+            file = file.split('.')[0] + "_best_eqs"
             file_name = os.path.join(setup.LOGS_DIR, file)
 
             if os.path.isfile(file_name):

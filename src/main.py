@@ -42,8 +42,6 @@ with open(config_path, 'r') as stream:
         print(exc)
 
 """Set up variables"""
-logs_data_dir = setup.LOGS_DIR
-print(logs_data_dir)
 if configs['DATASET'] == 'raw':
     raw_data_dir = setup.RAW_DATA_DIR
 elif configs['DATASET'] == 'test':
@@ -52,9 +50,10 @@ else:
     raise ValueError('The chosen data mode does not exist!')
 int_data_dir = setup.INT_DATA_DIR
 final_data_dir = setup.FINAL_DATA_DIR
+logs_data_dir = setup.LOGS_DIR
 directory = os.fsencode(raw_data_dir)
 
-"""Clean up the directories"""
+"""Clean up relevant directories"""
 if args.clean:
     for f in os.listdir(int_data_dir):
         os.remove(os.path.join(int_data_dir, f))
@@ -81,9 +80,10 @@ ransac = IterativeRANSAC(
 )
 
 cloud_post = PlaneRemoval(
+    in_dir = raw_data_dir,
     out_dir=int_data_dir,
-    eqs_path=logs_data_dir,
-    thresh=configs['RAW_REMOVAL']['THRESH']
+    eqs_dir=logs_data_dir,
+    thresh=configs['PLANE_REMOVAL']['THRESH']
 )
 
 # detect planes in a single point cloud
@@ -93,19 +93,17 @@ def process_single_pc(file):
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
         ransac.detect_planes(filename)
-        ransac.store_best_eqs()
+        ransac.store_best_eqs(filename)
         if configs['VERBOSE']:
             ransac.display_final_pc()
 
 
-# remove planes in a single point cloud
+# remove planes from a single point cloud
 def post_process_single_pc(file):
 
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
-        file_path = os.path.join(raw_data_dir, filename)
-        eqs = filename.split('.')[0] + "_best_eqs"
-        cloud_post.remove_planes(file_path, eqs)
+        cloud_post.remove_planes(filename)
 
         if configs['OUT_REMOVAL']['USE']:
             if configs['VERBOSE']:
@@ -119,6 +117,7 @@ def post_process_single_pc(file):
 
 
 @timer
+# Multiprocessing interface for plane detection and removal
 def main():
     # plane detection in downsampled point cloud data
     pool = Pool()
@@ -127,7 +126,7 @@ def main():
     pool.join()
 
     # plane removal from original point cloud data
-    if configs['RAW_REMOVAL']['USE']:
+    if configs['PLANE_REMOVAL']['USE']:
         pool_post = Pool()
         pool_post.map(post_process_single_pc, os.listdir(directory))
         pool_post.close()
