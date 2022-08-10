@@ -54,8 +54,7 @@ class PlaneRemoval:
 
         # Retain color information for final point cloud
         if self.pcd_out:
-            dists = cloud.compute_point_cloud_distance(self.pcd_out)
-            dists = np.asarray(dists)
+            dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
             ind = np.where(dists < 0.01)[0]
             self.pcd_out = cloud.select_by_index(ind)
         else:
