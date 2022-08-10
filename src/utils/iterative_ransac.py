@@ -6,6 +6,7 @@ import pickle
 
 import system_setup as setup
 from .utils import timer
+from .dataset import DataLoader
 
 
 class IterativeRANSAC:
@@ -13,7 +14,8 @@ class IterativeRANSAC:
     Iterative RANSAC algorithm to detect n planes based on minimal plane size, set by the user.
     """
 
-    def __init__(self, data_dir: str, plane_size: int, thresh: float, debug: bool = False, store: bool = False):
+    def __init__(self, dataloader: DataLoader, data_dir: str, plane_size: int, thresh: float, debug: bool = False, store: bool = False):
+        self.dataloader = dataloader
         self.data_dir = data_dir
         self.plane_size = plane_size
         self.thresh = thresh
@@ -27,8 +29,9 @@ class IterativeRANSAC:
         self.planes = []
 
     @timer
-    def detect_planes(self, cloud, file: str):
+    def detect_planes(self, file: str):
         print("Iterative RANSAC...")
+        cloud = self.dataloader.load_data(file)
         self.points = np.asarray(cloud.points)
         self.file = file
 

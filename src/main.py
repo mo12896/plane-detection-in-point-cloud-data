@@ -65,24 +65,25 @@ if args.clean:
 
 """Instantiate relevant objects"""
 data = DataLoader(
-    raw_data_dir,
-    configs['HEURISTICS']['LARGE_PC'],
-    configs['HEURISTICS']['VOXEL_SIZE'],
-    configs['HEURISTICS']['VOXEL_STEP'],
-    configs['VERBOSE']
+    dir_path=raw_data_dir,
+    large_pc=configs['HEURISTICS']['LARGE_PC'],
+    voxel_size=configs['HEURISTICS']['VOXEL_SIZE'],
+    voxel_step=configs['HEURISTICS']['VOXEL_STEP'],
+    verbose=configs['VERBOSE']
 )
 
 ransac = IterativeRANSAC(
-    int_data_dir,
-    configs['HEURISTICS']['PLANE_SIZE'],
-    configs['THRESH'],
-    configs['DEBUG']
+    dataloader=data,
+    data_dir=int_data_dir,
+    plane_size=configs['HEURISTICS']['PLANE_SIZE'],
+    thresh=configs['THRESH'],
+    debug=configs['DEBUG']
 )
 
 cloud_post = PlaneRemoval(
-    int_data_dir,
-    logs_data_dir,
-    configs['RAW_REMOVAL']['THRESH']
+    out_dir=int_data_dir,
+    eqs_path=logs_data_dir,
+    thresh=configs['RAW_REMOVAL']['THRESH']
 )
 
 # detect planes in a single point cloud
@@ -91,8 +92,7 @@ def process_single_pc(file):
 
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
-        pcd = data.load_data(filename)
-        ransac.detect_planes(pcd, filename)
+        ransac.detect_planes(filename)
         ransac.store_best_eqs()
         if configs['VERBOSE']:
             ransac.display_final_pc()
