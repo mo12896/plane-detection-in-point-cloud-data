@@ -19,7 +19,7 @@ class DataLoader:
         # Downsample large point clouds into user-defined processing scope
         while len(pcd.points) > self.large_pc and self.voxel_size:
             pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
-            self.voxel_size=self.voxel_size+self.voxel_step
+            self.voxel_size = self.voxel_size + self.voxel_step
             print(f"'{filename}' has {len(pcd.points)} points after downsampling!")
 
         if self.verbose:
