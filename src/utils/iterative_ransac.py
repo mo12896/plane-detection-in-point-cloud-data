@@ -46,21 +46,21 @@ class IterativeRANSAC:
             best_eq, best_inliers = plane.fit(self.points, self.thresh)
 
             # Only remove planes larger than size heuristic
-            if len(best_inliers) > self.plane_size:
-                plane_counter += 1
-                self.eqs.append(best_eq)
-                # Remove the best inliers from overall point cloud
-                pcd_points = o3d.geometry.PointCloud()
-                pcd_points.points = o3d.utility.Vector3dVector(self.points)
-                self.pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
-
-                if self.debug:
-                    plane = pcd_points.select_by_index(best_inliers)
-                    self.planes.append(plane)
-
-                self.points = np.asarray(self.pcd_out.points)
-            else:
+            if len(best_inliers) < self.plane_size:
                 break
+
+            plane_counter += 1
+            self.eqs.append(best_eq)
+            # Remove the best inliers from overall point cloud
+            pcd_points = o3d.geometry.PointCloud()
+            pcd_points.points = o3d.utility.Vector3dVector(self.points)
+            self.pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
+
+            if self.debug:
+                plane = pcd_points.select_by_index(best_inliers)
+                self.planes.append(plane)
+
+            self.points = np.asarray(self.pcd_out.points)
 
         # Display plane removals during debugging
         if self.debug:
