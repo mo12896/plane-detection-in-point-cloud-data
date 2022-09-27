@@ -87,7 +87,7 @@ cloud_post = PlaneRemoval(
 )
 
 # detect planes in a single point cloud
-def process_single_pc(file):
+def detect_plane(file):
     """Process single point cloud data file"""
 
     filename = os.fsdecode(file)
@@ -99,7 +99,7 @@ def process_single_pc(file):
 
 
 # remove planes from a single point cloud
-def post_process_single_pc(file):
+def remove_plane(file):
 
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
@@ -121,14 +121,14 @@ def post_process_single_pc(file):
 def main():
     # plane detection in downsampled point cloud data
     pool = Pool()
-    pool.map(process_single_pc, os.listdir(directory))
+    pool.map(detect_plane, os.listdir(directory))
     pool.close()
     pool.join()
 
     # plane removal from original point cloud data
     if configs['PLANE_REMOVAL']['USE']:
         pool_post = Pool()
-        pool_post.map(post_process_single_pc, os.listdir(directory))
+        pool_post.map(remove_plane, os.listdir(directory))
         pool_post.close()
         pool_post.join()
 

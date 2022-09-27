@@ -14,7 +14,7 @@ HEURISTICS:
 THRESH: 0.03
 
 # remove planes from original point cloud data
-RAW_REMOVAL:
+PLANE_REMOVAL:
   USE: True
   THRESH: 0.05
 
