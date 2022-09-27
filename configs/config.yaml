@@ -1,7 +1,7 @@
 DEBUG: True
 VERBOSE: False
 # set 'test' for debugging or 'raw' for production
-DATASET: 'raw'
+DATASET: 'test'
 HEURISTICS:
   # minimal number of points considered for a plane
   PLANE_SIZE: 16500

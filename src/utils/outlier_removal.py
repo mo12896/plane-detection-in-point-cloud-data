@@ -23,11 +23,11 @@ class Context:
         self._strategy = strategy
 
     def run(self, data_dir, filename, debug: bool = False):
-        self._strategy.remove_outliers(data_dir, filename)
-        self._strategy.display_final_pc()
+        cl, _ = self._strategy.remove_outliers(data_dir, filename)
+        o3d.visualization.draw_geometries([cl])
         # TODO: Bug in implementation (malloc() error)
-        # if debug:
-        #     self._strategy.display_in_out()
+        #if debug:
+        #    display_in_out(cl, id)
 
 
 # Interface for outlier removal algorithms
@@ -37,14 +37,6 @@ class OutlierRemoval(ABC):
 
     @abstractmethod
     def remove_outliers(self, data_dir, file: str):
-        pass
-
-    @abstractmethod
-    def display_in_out(self):
-        pass
-
-    @abstractmethod
-    def display_final_pc(self):
         pass
 
 
@@ -69,16 +61,13 @@ class StatisticalOutlierRemoval(OutlierRemoval):
                                                            std_ratio=self.std_ratio)
 
         data_path = os.path.join(self.out_dir, file)
-        if not os.path.isfile(data_path):
-            o3d.io.write_point_cloud(data_path, self.cl)
+        try:
+            if not os.path.isfile(data_path):
+                o3d.io.write_point_cloud(data_path, self.cl)
+        except:
+            print(f"File {file} could not be written!")
 
         return self.cl, self.ind
-
-    def display_in_out(self):
-        display_inlier_outlier(self.cl, self.ind)
-
-    def display_final_pc(self):
-        o3d.visualization.draw_geometries([self.cl])
 
 
 class RadiusOutlierRemoval(OutlierRemoval):
@@ -102,13 +91,11 @@ class RadiusOutlierRemoval(OutlierRemoval):
                                                       radius=self.radius)
 
         data_path = os.path.join(self.out_dir, file)
-        if not os.path.isfile(data_path):
-            o3d.io.write_point_cloud(data_path, self.cl)
+        try:
+            if not os.path.isfile(data_path):
+                o3d.io.write_point_cloud(data_path, self.cl)
+        except:
+            print(f"File {file} could not be written!")      
 
         return self.cl, self.ind
 
-    def display_in_out(self):
-        display_inlier_outlier(self.cl, self.ind)
-
-    def display_final_pc(self):
-        o3d.visualization.draw_geometries([self.cl])
