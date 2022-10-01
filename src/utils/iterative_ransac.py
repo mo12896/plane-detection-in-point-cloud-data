@@ -3,13 +3,30 @@ import numpy as np
 import os
 import pyransac3d as pyrsc
 import pickle
+from abc import ABC, abstractmethod
+
 
 import system_setup as setup
 from .utils import timer
 from .dataset import DataLoader
 
 
-class IterativeRANSAC:
+class PlaneDetection(ABC):
+
+    @abstractmethod
+    def detect_planes(self, file: str):
+        pass
+
+    @abstractmethod
+    def store_best_eqs(self, file: str):
+        pass
+
+    @abstractmethod
+    def display_final_pc(self):
+        pass
+
+
+class IterativeRANSAC(PlaneDetection):
     """
     Iterative RANSAC algorithm to detect n planes based on minimal plane size, set by the user.
     """
@@ -84,12 +101,6 @@ class IterativeRANSAC:
         print(f"Identified {plane_counter} plane(s) in point cloud '{file}'")
         return self.pcd_out
 
-    def display_final_pc(self):
-        if self.pcd_out:
-            o3d.visualization.draw_geometries([self.pcd_out])
-        else:
-            raise ValueError("You try to display an empty point cloud!")
-
     def store_best_eqs(self, file: str):
         if self.eqs:
             file = file.split('.')[0] + "_best_eqs"
@@ -102,6 +113,12 @@ class IterativeRANSAC:
                 pickle.dump(self.eqs, fp)
         else:
             raise ValueError("No plane equations were extracted!")
+    
+    def display_final_pc(self):
+        if self.pcd_out:
+            o3d.visualization.draw_geometries([self.pcd_out])
+        else:
+            raise ValueError("You try to display an empty point cloud!")
 
 
 

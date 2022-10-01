@@ -3,18 +3,25 @@ import os
 
 from multiprocessing import Pool
 from argparse import ArgumentParser
-import open3d as o3d
+from enum import Enum, auto
 
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
-from utils.dataset import DataLoader
+from utils.dataset import DataLoader_DS
 from utils.outlier_removal import Context, StatisticalOutlierRemoval, RadiusOutlierRemoval
-from utils.plane_removal import PlaneRemoval
+from utils.plane_removal import PlaneRemovalAll
 from utils.utils import timer
 
 
 # Readable point cloud formats for Open3D
 pc_formats = ('xyz', 'xyzn', 'xyzrgb', 'pts', 'ply', 'pcd')
+
+class Mode(Enum):
+    """Point cloud Folder to choose from."""
+
+    TEST = "test"
+    RAW = "raw"
+    
 
 """Define the config file to be used"""
 argparser = ArgumentParser(description="Plane Removal")
@@ -42,12 +49,13 @@ with open(config_path, 'r') as stream:
         print(exc)
 
 """Set up variables"""
-if configs['DATASET'] == 'raw':
+if configs['DATASET'] == Mode.RAW.value:
     raw_data_dir = setup.RAW_DATA_DIR
-elif configs['DATASET'] == 'test':
+elif configs['DATASET'] == Mode.TEST.value:
     raw_data_dir = setup.TEST_DATA_DIR
 else:
     raise ValueError('The chosen data mode does not exist!')
+
 int_data_dir = setup.INT_DATA_DIR
 final_data_dir = setup.FINAL_DATA_DIR
 logs_data_dir = setup.LOGS_DIR
@@ -63,7 +71,7 @@ if args.clean:
         os.remove(os.path.join(logs_data_dir, f))
 
 """Instantiate relevant objects"""
-data = DataLoader(
+data = DataLoader_DS(
     dir_path=raw_data_dir,
     large_pc=configs['HEURISTICS']['LARGE_PC'],
     voxel_size=configs['HEURISTICS']['VOXEL_SIZE'],
@@ -79,7 +87,7 @@ ransac = IterativeRANSAC(
     debug=configs['DEBUG']
 )
 
-cloud_post = PlaneRemoval(
+cloud_post = PlaneRemovalAll(
     in_dir = raw_data_dir,
     out_dir=int_data_dir,
     eqs_dir=logs_data_dir,

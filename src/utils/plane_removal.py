@@ -2,11 +2,23 @@ import os
 import numpy as np
 import open3d as o3d
 import pickle
+from abc import ABC, abstractmethod
 
 from .utils import remove_by_indices, timer
 
 
-class PlaneRemoval:
+class PlaneRemoval(ABC):
+
+    @abstractmethod
+    def remove_planes(self, file: str):
+        pass
+
+    @abstractmethod
+    def display_final_pc(self):
+        pass
+
+
+class PlaneRemovalAll(PlaneRemoval):
     """
     This the class for removing detected planes, based on the extracted plane equations from the
     original point cloud data!
@@ -21,7 +33,7 @@ class PlaneRemoval:
         self.pcd_out = None
 
     @timer
-    def remove_planes(self, file):
+    def remove_planes(self, file: str):
         print("Remove planes from original point cloud...")
         # Read the point cloud from raw directory
         try:
