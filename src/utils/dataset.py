@@ -12,6 +12,18 @@ class DataLoader(ABC):
         pass
 
 
+class DataLoader_STD(DataLoader):
+    def __init__(self, dir_path: str):
+        self.dir_path = dir_path
+   
+
+    def load_data(self, file: str):
+        file_path = os.path.join(self.dir_path, file)
+        pcd = o3d.io.read_point_cloud(file_path)
+
+        return pcd
+    
+
 class DataLoader_DS(DataLoader):
     def __init__(self, dir_path: str, large_pc: int, voxel_size: float, voxel_step: float, verbose: bool = False):
         self.dir_path = dir_path
@@ -44,4 +56,5 @@ class DataLoader_DS(DataLoader):
             print(f"'{file}' has {len(cloud.points)} points after downsampling!")
 
         return cloud
+
 

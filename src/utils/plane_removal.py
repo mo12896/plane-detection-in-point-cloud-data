@@ -5,7 +5,7 @@ import pickle
 from abc import ABC, abstractmethod
 
 from .utils import remove_by_indices, timer
-
+from .dataset import DataLoader
 
 class PlaneRemoval(ABC):
 
@@ -24,8 +24,8 @@ class PlaneRemovalAll(PlaneRemoval):
     original point cloud data!
     """
 
-    def __init__(self, in_dir: str, out_dir: str, eqs_dir: str, thresh: float, store: bool = True):
-        self.in_dir = in_dir
+    def __init__(self, dataloader: DataLoader, out_dir: str, eqs_dir: str, thresh: float, store: bool = True):
+        self.dataloader = dataloader
         self.out_dir = out_dir
         self.eqs_dir = eqs_dir
         self.thresh = thresh
@@ -37,8 +37,7 @@ class PlaneRemovalAll(PlaneRemoval):
         print("Remove planes from original point cloud...")
         # Read the point cloud from raw directory
         try:
-            file_path = os.path.join(self.in_dir, file)
-            cloud = o3d.io.read_point_cloud(file_path)
+            cloud = self.dataloader.load_data(file)
         except:
             print(f"File {file} could not be loaded!")
 
@@ -73,6 +72,7 @@ class PlaneRemovalAll(PlaneRemoval):
             raise ValueError("No point cloud was generated!")
 
         # Store intermediate point cloud data
+        # TODO: Add functionality in DataLoader and call it DataHandler
         if self.store:
             data_path = os.path.join(self.out_dir, file)
             if not os.path.isfile(data_path):

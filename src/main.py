@@ -7,7 +7,7 @@ from enum import Enum, auto
 
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
-from utils.dataset import DataLoader_DS
+from utils.dataset import DataLoader_DS, DataLoader_STD
 from utils.outlier_removal import Context, StatisticalOutlierRemoval, RadiusOutlierRemoval
 from utils.plane_removal import PlaneRemovalAll
 from utils.utils import timer
@@ -87,8 +87,10 @@ ransac = IterativeRANSAC(
     debug=configs['DEBUG']
 )
 
+raw_data = DataLoader_STD(raw_data_dir)
+
 cloud_post = PlaneRemovalAll(
-    in_dir = raw_data_dir,
+    dataloader = raw_data,
     out_dir=int_data_dir,
     eqs_dir=logs_data_dir,
     thresh=configs['PLANE_REMOVAL']['THRESH']
