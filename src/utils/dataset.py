@@ -1,15 +1,17 @@
 """Data Loader Interface and two concrete implementations"""
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Dict
 
 import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 
 
 class DataLoader(ABC):
     """Data Loader Interface"""
 
     @abstractmethod
-    def load_data(self, filename: str):
+    def load_data(self, filename: str) -> PointCloud:
         """Standard method to load data"""
 
 
@@ -18,10 +20,10 @@ class DataLoaderSTD(DataLoader):
     def __init__(self, dir_path: Path):
         self.dir_path = dir_path
 
-    def load_data(self, filename: str):
+    def load_data(self, filename: str) -> PointCloud:
         file_path = self.dir_path / filename
         pcd = o3d.io.read_point_cloud(str(file_path))
-
+        
         return pcd
     
 
@@ -29,7 +31,7 @@ class DataLoaderDS(DataLoader):
     """Data Loader including a downsampling method"""
     def __init__(self,
                  dir_path: Path,
-                 down_params: dict() = {},
+                 down_params: Dict[str, float],
                  verbose: bool = False):
                  
         self.dir_path = dir_path
@@ -38,7 +40,7 @@ class DataLoaderDS(DataLoader):
         self.voxel_step = down_params['VOXEL_STEP']
         self.verbose = verbose
 
-    def load_data(self, filename: str):
+    def load_data(self, filename: str) -> PointCloud:
         file_path = self.dir_path / filename
         pcd = o3d.io.read_point_cloud(str(file_path))
 
@@ -51,7 +53,7 @@ class DataLoaderDS(DataLoader):
 
         return pcd_down
 
-    def _downsample_data(self, cloud, filename: str):
+    def _downsample_data(self, cloud, filename: str) -> PointCloud:
         """Down sample point cloud data based on the definition of a large pointcloud
         and the speed of downsampling in the config file!"""
 

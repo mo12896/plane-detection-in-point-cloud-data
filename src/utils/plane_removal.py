@@ -2,22 +2,25 @@
 import pickle
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Dict
 
 import numpy as np
 import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 
 from .utils import remove_by_indices, timer
 from .dataset import DataLoader
+
 
 class PlaneRemoval(ABC):
     """Interface for removing detected planes"""
 
     @abstractmethod
-    def remove_planes(self, filename: str):
+    def remove_planes(self, filename: str) -> PointCloud:
         """Remove detected planes"""
 
     @abstractmethod
-    def display_final_pc(self):
+    def display_final_pc(self) -> None:
         """Display the final point cloud"""
 
 class PlaneRemovalAll(PlaneRemoval):
@@ -31,7 +34,7 @@ class PlaneRemovalAll(PlaneRemoval):
                  out_dir: Path, 
                  eqs_dir: Path, 
                  dataloader: DataLoader, 
-                 remove_params: dict() = {},
+                 remove_params: Dict[str, float],
                  store: bool = True):
 
         self.dataloader = dataloader
@@ -41,7 +44,7 @@ class PlaneRemovalAll(PlaneRemoval):
         self.store = store
 
     @timer
-    def remove_planes(self, filename: str):
+    def remove_planes(self, filename: str) -> PointCloud:
         """Remove all planes based on heuristics set in the configuration file"""
         print("Remove planes from original point cloud...")
         # Read the point cloud from raw directory

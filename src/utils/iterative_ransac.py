@@ -2,8 +2,10 @@
 import pickle
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Dict
 
 import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 import numpy as np
 import pyransac3d as pyrsc
 
@@ -16,15 +18,15 @@ class PlaneDetection(ABC):
     """Plane Detection Interface"""
 
     @abstractmethod
-    def detect_planes(self, filename: str):
+    def detect_planes(self, filename: str) -> PointCloud:
         """Plane Detection"""
 
     @abstractmethod
-    def store_best_eqs(self, filename: str):
+    def store_best_eqs(self, filename: str) -> None:
         """Store Best Plane Equations"""
 
     @abstractmethod
-    def display_final_pc(self):
+    def display_final_pc(self) -> None:
         """Display Final PointCloud"""
 
 class IterativeRANSAC(PlaneDetection):
@@ -41,7 +43,7 @@ class IterativeRANSAC(PlaneDetection):
     def __init__(self,
                  dataloader: DataLoader,
                  data_dir: Path, 
-                 ransac_params: dict() = {},
+                 ransac_params: Dict[str, float],
                  debug: bool = False,
                  store: bool = False):
 
@@ -53,7 +55,7 @@ class IterativeRANSAC(PlaneDetection):
         self.debug = debug
 
     @timer
-    def detect_planes(self, filename: str):
+    def detect_planes(self, filename: str) -> PointCloud:
         """Detect planes using an iterative RANSAC algorithm"""
         try:
             cloud = self.dataloader.load_data(filename)
@@ -108,7 +110,7 @@ class IterativeRANSAC(PlaneDetection):
         print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
 
-    def _save_pcs(self, filename):
+    def _save_pcs(self, filename) -> None:
         """
         Saves point cloud data to a file
         :param filename:
@@ -118,13 +120,13 @@ class IterativeRANSAC(PlaneDetection):
         if not data_path.is_file():
             o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 
-    def store_best_eqs(self, filename: str):
+    def store_best_eqs(self, filename: str) -> None:
         """
         Saves best plane equations in a pickle file
         :param filename:
         :return:
         """
-        if self.eqs:
+        try:
             filename = filename.split('.')[0] + "_best_eqs"
             file_path = setup.LOGS_DIR / filename
 
@@ -132,10 +134,11 @@ class IterativeRANSAC(PlaneDetection):
 
             with file_path.open('wb') as fp:
                 pickle.dump(self.eqs, fp)
-        else:
-            raise ValueError("No plane equations were extracted!")
+        except Exception as exc:
+            print("No plane equations were extracted!")
+            print(exc)
     
-    def display_final_pc(self):
+    def display_final_pc(self) -> None:
         """
         Displays the final point cloud
         :return:

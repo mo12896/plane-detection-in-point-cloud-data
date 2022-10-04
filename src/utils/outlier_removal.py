@@ -1,8 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Tuple, List, Dict
 
 import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 
 from .utils import timer
 from .dataset import DataLoader
@@ -26,7 +28,7 @@ class Context:
         """Set the strategy"""
         self._strategy = strategy
 
-    def run(self, filename):
+    def run(self, filename) -> None:
         """Run the outlier removal strategy"""
         cl, _ = self._strategy.remove_outliers(filename)
         if not cl:
@@ -43,15 +45,16 @@ class OutlierRemoval(ABC):
     """Implementation of the OutlierRemoval Interface"""
 
     @abstractmethod
-    def remove_outliers(self, filename: str):
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
         """Remove Outlier from a PointCloud"""
+
 
 class StatisticalOutlierRemoval(OutlierRemoval):
     """Removes outliers using statistical analysis"""
     def __init__(self,
                  out_dir: Path, 
                  dataloader: DataLoader,
-                 out_params: dict() = {}):
+                 out_params: Dict[str, float]):
 
         self.out_dir = out_dir
         self.dataloader = dataloader
@@ -59,7 +62,7 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         self.std_ratio = out_params['STD_RATIO']
 
     @timer
-    def remove_outliers(self, filename: str):
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
         print("Statistical outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
@@ -78,7 +81,7 @@ class StatisticalOutlierRemoval(OutlierRemoval):
             print(f"File {filename} could not be written!")
             print(exc)
 
-        return cl, ind
+        return (cl, ind)
 
 
 class RadiusOutlierRemoval(OutlierRemoval):
@@ -86,7 +89,7 @@ class RadiusOutlierRemoval(OutlierRemoval):
     def __init__(self,
                  out_dir: Path, 
                  dataloader: DataLoader,
-                 out_params: dict() = {}):
+                 out_params: Dict[str, float]):
 
         self.out_dir = out_dir
         self.dataloader = dataloader
@@ -94,7 +97,7 @@ class RadiusOutlierRemoval(OutlierRemoval):
         self.radius = out_params['RADIUS']
 
     @timer
-    def remove_outliers(self, filename: str):
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
         print("Radius outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
@@ -113,5 +116,5 @@ class RadiusOutlierRemoval(OutlierRemoval):
             print(f"File {filename} could not be written!")
             print(exc)   
 
-        return cl, ind
+        return (cl, ind)
 
