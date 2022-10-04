@@ -31,19 +31,24 @@ class IterativeRANSAC(PlaneDetection):
     Iterative RANSAC algorithm to detect n planes based on minimal plane size, set by the user.
     """
 
-    def __init__(self, dataloader: DataLoader, data_dir: str, plane_size: int, thresh: float, debug: bool = False, store: bool = False):
+    pcd_out = None
+    eqs = []
+    # For debugging only!
+    planes = []
+
+    def __init__(self,
+                 dataloader: DataLoader,
+                 data_dir: str, 
+                 ransac_params: dict() = {},
+                 debug: bool = False,
+                 store: bool = False):
+
         self.dataloader = dataloader
         self.data_dir = data_dir
-        self.plane_size = plane_size
-        self.thresh = thresh
+        self.plane_size = ransac_params['PLANE_SIZE']
+        self.thresh = ransac_params['THRESH']
         self.store = store
         self.debug = debug
-        self.points = None
-        self.pcd_out = None
-        self.file = None
-        self.eqs = []
-        # For debugging only!
-        self.planes = []
 
     @timer
     def detect_planes(self, file: str):
@@ -54,13 +59,13 @@ class IterativeRANSAC(PlaneDetection):
         except:
             print(f"File {file} could not be loaded!")
 
-        self.points = np.asarray(cloud.points)
+        points = np.asarray(cloud.points)
 
         plane_counter = 0
         while True:
             # Find best plane using RANSAC
             plane = pyrsc.Plane()
-            best_eq, best_inliers = plane.fit(self.points, self.thresh)
+            best_eq, best_inliers = plane.fit(points, self.thresh)
 
             # Only remove planes larger than size heuristic
             if len(best_inliers) < self.plane_size:
@@ -70,14 +75,14 @@ class IterativeRANSAC(PlaneDetection):
             self.eqs.append(best_eq)
             # Remove the best inliers from overall point cloud
             pcd_points = o3d.geometry.PointCloud()
-            pcd_points.points = o3d.utility.Vector3dVector(self.points)
+            pcd_points.points = o3d.utility.Vector3dVector(points)
             self.pcd_out = pcd_points.select_by_index(best_inliers, invert=True)
 
             if self.debug:
                 plane = pcd_points.select_by_index(best_inliers)
                 self.planes.append(plane)
 
-            self.points = np.asarray(self.pcd_out.points)
+            points = np.asarray(self.pcd_out.points)
 
         # Display plane removals during debugging
         if self.debug:
@@ -101,8 +106,9 @@ class IterativeRANSAC(PlaneDetection):
         print(f"Identified {plane_counter} plane(s) in point cloud '{file}'")
         return self.pcd_out
 
-    def store_best_eqs(self, file: str):
-        if self.eqs:
+    @classmethod
+    def store_best_eqs(cls, file: str):
+        if cls.eqs:
             file = file.split('.')[0] + "_best_eqs"
             file_name = os.path.join(setup.LOGS_DIR, file)
 
@@ -110,15 +116,15 @@ class IterativeRANSAC(PlaneDetection):
                 os.remove(file_name)
 
             with open(file_name, 'wb') as fp:
-                pickle.dump(self.eqs, fp)
+                pickle.dump(cls.eqs, fp)
         else:
             raise ValueError("No plane equations were extracted!")
     
     def display_final_pc(self):
-        if self.pcd_out:
-            o3d.visualization.draw_geometries([self.pcd_out])
-        else:
+        if not self.pcd_out:
             raise ValueError("You try to display an empty point cloud!")
+        
+        o3d.visualization.draw_geometries([self.pcd_out])
 
 
 

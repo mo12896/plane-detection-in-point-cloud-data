@@ -23,14 +23,20 @@ class PlaneRemovalAll(PlaneRemoval):
     This the class for removing detected planes, based on the extracted plane equations from the
     original point cloud data!
     """
+    pcd_out = None
 
-    def __init__(self, dataloader: DataLoader, out_dir: str, eqs_dir: str, thresh: float, store: bool = True):
+    def __init__(self,
+                 out_dir: str, 
+                 eqs_dir: str, 
+                 dataloader: DataLoader, 
+                 remove_params: dict() = {},
+                 store: bool = True):
+
         self.dataloader = dataloader
         self.out_dir = out_dir
         self.eqs_dir = eqs_dir
-        self.thresh = thresh
+        self.thresh = remove_params['THRESH']
         self.store = store
-        self.pcd_out = None
 
     @timer
     def remove_planes(self, file: str):
@@ -64,12 +70,12 @@ class PlaneRemovalAll(PlaneRemoval):
         self.pcd_out.points = o3d.utility.Vector3dVector(pts)
 
         # Retain color information for final point cloud
-        if self.pcd_out:
+        try:
             dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
             ind = np.where(dists < 0.01)[0]
             self.pcd_out = cloud.select_by_index(ind)
-        else:
-            raise ValueError("No point cloud was generated!")
+        except:
+            print("No point cloud was generated!")
 
         # Store intermediate point cloud data
         # TODO: Add functionality in DataLoader and call it DataHandler
@@ -81,10 +87,11 @@ class PlaneRemovalAll(PlaneRemoval):
         return self.pcd_out
 
     def display_final_pc(self):
-        if self.pcd_out:
-            o3d.visualization.draw_geometries([self.pcd_out])
-        else:
+        if not self.pcd_out:
             raise ValueError("You try to display an empty point cloud!")
+
+        o3d.visualization.draw_geometries([self.pcd_out])
+       
 
 
 

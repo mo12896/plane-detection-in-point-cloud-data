@@ -73,28 +73,27 @@ if args.clean:
 """Instantiate relevant objects"""
 data = DataLoader_DS(
     dir_path=raw_data_dir,
-    large_pc=configs['HEURISTICS']['LARGE_PC'],
-    voxel_size=configs['HEURISTICS']['VOXEL_SIZE'],
-    voxel_step=configs['HEURISTICS']['VOXEL_STEP'],
+    down_params=configs['DOWN'],
     verbose=configs['VERBOSE']
 )
 
 ransac = IterativeRANSAC(
     dataloader=data,
     data_dir=int_data_dir,
-    plane_size=configs['HEURISTICS']['PLANE_SIZE'],
-    thresh=configs['THRESH'],
+    ransac_params=configs['RANSAC'],
     debug=configs['DEBUG']
 )
 
 raw_data = DataLoader_STD(raw_data_dir)
 
-cloud_post = PlaneRemovalAll(
+plane_remove = PlaneRemovalAll(
     dataloader = raw_data,
     out_dir=int_data_dir,
     eqs_dir=logs_data_dir,
-    thresh=configs['PLANE_REMOVAL']['THRESH']
+    remove_params=configs['PLANE_REMOVAL']
 )
+
+pre_data = DataLoader_STD(int_data_dir)
 
 # detect planes in a single point cloud
 def detect_plane(file):
@@ -113,17 +112,17 @@ def remove_plane(file):
 
     filename = os.fsdecode(file)
     if filename.endswith(pc_formats):
-        cloud_post.remove_planes(filename)
+        plane_remove.remove_planes(filename)
 
         if configs['OUT_REMOVAL']['USE']:
             if configs['VERBOSE']:
-                cloud_post.display_final_pc()
-            context = Context(eval(configs['OUT_REMOVAL']['METHOD'])(final_data_dir,
-                                                                     configs['OUT_REMOVAL']['NB_NEIGHBORS'],
-                                                                     configs['OUT_REMOVAL']['STD_RATIO']))
-            context.run(int_data_dir, filename, configs['DEBUG'])
+                plane_remove.display_final_pc()
+            context = Context(eval(configs['OUT_REMOVAL']['METHOD'])(out_dir=final_data_dir,
+                                                                     dataloader=pre_data,
+                                                                     out_params=configs['OUT_REMOVAL']))
+            context.run(filename, configs['DEBUG'])
         else:
-            cloud_post.display_final_pc()
+            plane_remove.display_final_pc()
 
 
 @timer

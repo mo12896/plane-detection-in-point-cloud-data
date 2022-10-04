@@ -17,19 +17,23 @@ class DataLoader_STD(DataLoader):
         self.dir_path = dir_path
    
 
-    def load_data(self, file: str):
-        file_path = os.path.join(self.dir_path, file)
+    def load_data(self, filename: str):
+        file_path = os.path.join(self.dir_path, filename)
         pcd = o3d.io.read_point_cloud(file_path)
 
         return pcd
     
 
 class DataLoader_DS(DataLoader):
-    def __init__(self, dir_path: str, large_pc: int, voxel_size: float, voxel_step: float, verbose: bool = False):
+    def __init__(self,
+                 dir_path: str,
+                 down_params: dict() = {},
+                 verbose: bool = False):
+                 
         self.dir_path = dir_path
-        self.large_pc = large_pc
-        self.voxel_size = voxel_size
-        self.voxel_step = voxel_step
+        self.large_pc = down_params['LARGE_PC']
+        self.voxel_size = down_params['VOXEL_SIZE']
+        self.voxel_step = down_params['VOXEL_STEP']
         self.verbose = verbose
 
     def load_data(self, file: str):
@@ -37,7 +41,7 @@ class DataLoader_DS(DataLoader):
         pcd = o3d.io.read_point_cloud(file_path)
 
         # Downsample large point clouds into user-defined processing scope
-        pcd_down = self.downsample_data(pcd, file)
+        pcd_down = self._downsample_data(pcd, file)
 
         if self.verbose:
             o3d.visualization.draw_geometries([pcd_down])
@@ -45,7 +49,7 @@ class DataLoader_DS(DataLoader):
 
         return pcd_down
 
-    def downsample_data(self, cloud, file: str):
+    def _downsample_data(self, cloud, file: str):
         """Down sample poin cloud data based on the definition of a large pointcloud
         and the speed of downsampling in the config file!"""
 
