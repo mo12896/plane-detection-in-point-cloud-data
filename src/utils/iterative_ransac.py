@@ -1,10 +1,11 @@
-import open3d as o3d
-import numpy as np
-import os
-import pyransac3d as pyrsc
+"""Plane Detection Interface and concrete RANSAC implementation"""
 import pickle
 from abc import ABC, abstractmethod
+from pathlib import Path
 
+import open3d as o3d
+import numpy as np
+import pyransac3d as pyrsc
 
 import system_setup as setup
 from .utils import timer
@@ -14,11 +15,11 @@ from .dataset import DataLoader
 class PlaneDetection(ABC):
 
     @abstractmethod
-    def detect_planes(self, file: str):
+    def detect_planes(self, filename: str):
         pass
 
     @abstractmethod
-    def store_best_eqs(self, file: str):
+    def store_best_eqs(self, filename: str):
         pass
 
     @abstractmethod
@@ -38,7 +39,7 @@ class IterativeRANSAC(PlaneDetection):
 
     def __init__(self,
                  dataloader: DataLoader,
-                 data_dir: str, 
+                 data_dir: Path, 
                  ransac_params: dict() = {},
                  debug: bool = False,
                  store: bool = False):
@@ -51,14 +52,15 @@ class IterativeRANSAC(PlaneDetection):
         self.debug = debug
 
     @timer
-    def detect_planes(self, file: str):
-        print("Iterative RANSAC...")
+    def detect_planes(self, filename: str):
         # Read the point cloud from raw directory
         try:
-            cloud = self.dataloader.load_data(file)
-        except:
-            print(f"File {file} could not be loaded!")
+            cloud = self.dataloader.load_data(filename)
+        except Exception as exc:
+            print(f"File {filename} could not be loaded!")
+            print(exc)
 
+        print("Iterative RANSAC...")
         points = np.asarray(cloud.points)
 
         plane_counter = 0
@@ -85,38 +87,38 @@ class IterativeRANSAC(PlaneDetection):
             points = np.asarray(self.pcd_out.points)
 
         # Display plane removals during debugging
-        if self.debug:
+        if self.debug and self.planes:
             print("Debugging...")
             o3d.visualization.draw_geometries(self.planes)
+        else:
+            raise ValueError("Debugging is not possible!")
 
         # Retain color information for final point cloud
-        if self.pcd_out:
-            dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
-            ind = np.where(dists < 0.01)[0]
-            self.pcd_out = cloud.select_by_index(ind)
-        else:
+        if not self.pcd_out:
             raise ValueError("No point cloud was generated!")
+
+        dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
+        ind = np.where(dists < 0.01)[0]
+        self.pcd_out = cloud.select_by_index(ind)
 
         # Store intermediate point cloud data
         if self.store:
-            data_path = os.path.join(self.data_dir, file)
-            if not os.path.isfile(data_path):
-                o3d.io.write_point_cloud(data_path, self.pcd_out)
+            data_path = self.data_dir / filename
+            if not data_path.is_file():
+                o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 
-        print(f"Identified {plane_counter} plane(s) in point cloud '{file}'")
+        print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
 
-    @classmethod
-    def store_best_eqs(cls, file: str):
-        if cls.eqs:
-            file = file.split('.')[0] + "_best_eqs"
-            file_name = os.path.join(setup.LOGS_DIR, file)
+    def store_best_eqs(self, filename: str):
+        if self.eqs:
+            filename = filename.split('.')[0] + "_best_eqs"
+            file_path = setup.LOGS_DIR / filename
 
-            if os.path.isfile(file_name):
-                os.remove(file_name)
+            if file_path.is_file(): file_path.unlink() 
 
-            with open(file_name, 'wb') as fp:
-                pickle.dump(cls.eqs, fp)
+            with file_path.open('wb') as fp:
+               pickle.dump(self.eqs, fp)
         else:
             raise ValueError("No plane equations were extracted!")
     

@@ -1,8 +1,10 @@
-import os
-import numpy as np
-import open3d as o3d
+"""PlaneRemoval Interface and concrete implementation for removing all detected planes"""
 import pickle
 from abc import ABC, abstractmethod
+from pathlib import Path
+
+import numpy as np
+import open3d as o3d
 
 from .utils import remove_by_indices, timer
 from .dataset import DataLoader
@@ -26,8 +28,8 @@ class PlaneRemovalAll(PlaneRemoval):
     pcd_out = None
 
     def __init__(self,
-                 out_dir: str, 
-                 eqs_dir: str, 
+                 out_dir: Path, 
+                 eqs_dir: Path, 
                  dataloader: DataLoader, 
                  remove_params: dict() = {},
                  store: bool = True):
@@ -50,7 +52,7 @@ class PlaneRemovalAll(PlaneRemoval):
         # Read the equations as python list
         try:
             eqs = file.split('.')[0] + "_best_eqs"
-            eqs_path = os.path.join(self.eqs_dir, eqs)
+            eqs_path = self.eqs_dir / eqs
             
             with open(eqs_path, 'rb') as fp:
                 best_eqs = pickle.load(fp)
@@ -80,9 +82,9 @@ class PlaneRemovalAll(PlaneRemoval):
         # Store intermediate point cloud data
         # TODO: Add functionality in DataLoader and call it DataHandler
         if self.store:
-            data_path = os.path.join(self.out_dir, file)
-            if not os.path.isfile(data_path):
-                o3d.io.write_point_cloud(data_path, self.pcd_out)
+            data_path = self.out_dir / file
+            if not data_path.is_file():
+                o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 
         return self.pcd_out
 

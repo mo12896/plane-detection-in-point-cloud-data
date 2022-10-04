@@ -1,9 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-import open3d as o3d
-import os
+from pathlib import Path
 
-from .utils import display_inlier_outlier, timer
+import open3d as o3d
+
+from .utils import timer
 from .dataset import DataLoader
 
 
@@ -46,7 +47,7 @@ class OutlierRemoval(ABC):
 
 class StatisticalOutlierRemoval(OutlierRemoval):
     def __init__(self,
-                 out_dir: str, 
+                 out_dir: Path, 
                  dataloader: DataLoader,
                  out_params: dict() = {}):
 
@@ -66,10 +67,10 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         cl, ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                            std_ratio=self.std_ratio)
 
-        data_path = os.path.join(self.out_dir, filename)
+        data_path = self.out_dir / filename
         try:
-            if not os.path.isfile(data_path):
-                o3d.io.write_point_cloud(data_path, cl)
+            if not data_path.is_file():
+                o3d.io.write_point_cloud(str(data_path), cl)
         except:
             print(f"File {filename} could not be written!")
 
@@ -78,7 +79,7 @@ class StatisticalOutlierRemoval(OutlierRemoval):
 
 class RadiusOutlierRemoval(OutlierRemoval):
     def __init__(self,
-                 out_dir: str, 
+                 out_dir: Path, 
                  dataloader: DataLoader,
                  out_params: dict() = {}):
 
@@ -98,10 +99,10 @@ class RadiusOutlierRemoval(OutlierRemoval):
         cl, ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                       radius=self.radius)
 
-        data_path = os.path.join(self.out_dir, filename)
+        data_path = self.out_dir / filename
         try:
-            if not os.path.isfile(data_path):
-                o3d.io.write_point_cloud(data_path, cl)
+            if not data_path.is_file():
+                o3d.io.write_point_cloud(str(data_path), cl)
         except:
             print(f"File {filename} could not be written!")      
 
