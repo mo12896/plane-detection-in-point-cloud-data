@@ -8,7 +8,7 @@ from pathlib import Path
 
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
-from utils.dataset import DataLoader_DS, DataLoader_STD
+from utils.dataset import DataLoaderDS, DataLoaderSTD
 from utils.outlier_removal import Context, StatisticalOutlierRemoval, RadiusOutlierRemoval
 from utils.plane_removal import PlaneRemovalAll
 from utils.utils import timer
@@ -72,7 +72,7 @@ if args.clean:
         os.remove(logs_data_dir / f)
 
 # Instantiate relevant objects
-data = DataLoader_DS(
+data = DataLoaderDS(
     dir_path=raw_data_dir,
     down_params=configs['DOWN'],
     verbose=configs['VERBOSE']
@@ -85,7 +85,7 @@ ransac = IterativeRANSAC(
     debug=configs['DEBUG']
 )
 
-raw_data = DataLoader_STD(raw_data_dir)
+raw_data = DataLoaderSTD(raw_data_dir)
 
 plane_remove = PlaneRemovalAll(
     dataloader = raw_data,
@@ -94,7 +94,7 @@ plane_remove = PlaneRemovalAll(
     remove_params=configs['PLANE_REMOVAL']
 )
 
-pre_data = DataLoader_STD(int_data_dir)
+pre_data = DataLoaderSTD(int_data_dir)
 
 
 def detect_plane(file):
@@ -120,7 +120,7 @@ def remove_plane(file):
             context = Context(eval(configs['OUT_REMOVAL']['METHOD'])(out_dir=final_data_dir,
                                                                      dataloader=pre_data,
                                                                      out_params=configs['OUT_REMOVAL']))
-            context.run(filename, configs['DEBUG'])
+            context.run(filename)
         else:
             plane_remove.display_final_pc()
 

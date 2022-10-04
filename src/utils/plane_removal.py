@@ -10,15 +10,15 @@ from .utils import remove_by_indices, timer
 from .dataset import DataLoader
 
 class PlaneRemoval(ABC):
+    """Interface for removing detected planes"""
 
     @abstractmethod
-    def remove_planes(self, file: str):
-        pass
+    def remove_planes(self, filename: str):
+        """Remove detected planes"""
 
     @abstractmethod
     def display_final_pc(self):
-        pass
-
+        """Display the final point cloud"""
 
 class PlaneRemovalAll(PlaneRemoval):
     """
@@ -41,23 +41,26 @@ class PlaneRemovalAll(PlaneRemoval):
         self.store = store
 
     @timer
-    def remove_planes(self, file: str):
+    def remove_planes(self, filename: str):
+        """Remove all planes based on heuristics set in the configuration file"""
         print("Remove planes from original point cloud...")
         # Read the point cloud from raw directory
         try:
-            cloud = self.dataloader.load_data(file)
-        except:
-            print(f"File {file} could not be loaded!")
+            cloud = self.dataloader.load_data(filename)
+        except Exception as exc:
+            print(f"File {filename} could not be loaded!")
+            print(exc)
 
         # Read the equations as python list
         try:
-            eqs = file.split('.')[0] + "_best_eqs"
+            eqs = filename.split('.')[0] + "_best_eqs"
             eqs_path = self.eqs_dir / eqs
             
-            with open(eqs_path, 'rb') as fp:
-                best_eqs = pickle.load(fp)
-        except:
+            with eqs_path.open('rb') as fp:
+               best_eqs = pickle.load(fp)
+        except Exception as exc:
             print(f"File {eqs} could not be loaded!")
+            print(exc)
 
         pts = np.asarray(cloud.points)
 
@@ -76,19 +79,31 @@ class PlaneRemovalAll(PlaneRemoval):
             dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
             ind = np.where(dists < 0.01)[0]
             self.pcd_out = cloud.select_by_index(ind)
-        except:
+        except Exception as exc:
             print("No point cloud was generated!")
+            print(exc)
 
         # Store intermediate point cloud data
-        # TODO: Add functionality in DataLoader and call it DataHandler
         if self.store:
-            data_path = self.out_dir / file
-            if not data_path.is_file():
-                o3d.io.write_point_cloud(str(data_path), self.pcd_out)
+            self._save_pcs(filename)
 
         return self.pcd_out
 
-    def display_final_pc(self):
+    def _save_pcs(self, filename: str) -> None:
+        """
+        Saves point cloud data to a file
+        :param filename:
+        :return:
+        """
+        data_path = self.out_dir / filename
+        if not data_path.is_file():
+            o3d.io.write_point_cloud(str(data_path), self.pcd_out)
+
+    def display_final_pc(self) -> None:
+        """
+        Displays the final point cloud
+        :return:
+        """
         if not self.pcd_out:
             raise ValueError("You try to display an empty point cloud!")
 

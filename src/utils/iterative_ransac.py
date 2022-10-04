@@ -13,23 +13,24 @@ from .dataset import DataLoader
 
 
 class PlaneDetection(ABC):
+    """Plane Detection Interface"""
 
     @abstractmethod
     def detect_planes(self, filename: str):
-        pass
+        """Plane Detection"""
 
     @abstractmethod
     def store_best_eqs(self, filename: str):
-        pass
+        """Store Best Plane Equations"""
 
     @abstractmethod
     def display_final_pc(self):
-        pass
-
+        """Display Final PointCloud"""
 
 class IterativeRANSAC(PlaneDetection):
     """
-    Iterative RANSAC algorithm to detect n planes based on minimal plane size, set by the user.
+    Iterative RANSAC algorithm to detect n planes based on minimal plane size, 
+    set by the user.
     """
 
     pcd_out = None
@@ -53,7 +54,7 @@ class IterativeRANSAC(PlaneDetection):
 
     @timer
     def detect_planes(self, filename: str):
-        # Read the point cloud from raw directory
+        """Detect planes using an iterative RANSAC algorithm"""
         try:
             cloud = self.dataloader.load_data(filename)
         except Exception as exc:
@@ -102,15 +103,27 @@ class IterativeRANSAC(PlaneDetection):
         self.pcd_out = cloud.select_by_index(ind)
 
         # Store intermediate point cloud data
-        if self.store:
-            data_path = self.data_dir / filename
-            if not data_path.is_file():
-                o3d.io.write_point_cloud(str(data_path), self.pcd_out)
+        if self.store: self._save_pcs(filename)
 
         print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
 
+    def _save_pcs(self, filename):
+        """
+        Saves point cloud data to a file
+        :param filename:
+        :return:
+        """
+        data_path = self.data_dir / filename
+        if not data_path.is_file():
+            o3d.io.write_point_cloud(str(data_path), self.pcd_out)
+
     def store_best_eqs(self, filename: str):
+        """
+        Saves best plane equations in a pickle file
+        :param filename:
+        :return:
+        """
         if self.eqs:
             filename = filename.split('.')[0] + "_best_eqs"
             file_path = setup.LOGS_DIR / filename
@@ -118,11 +131,15 @@ class IterativeRANSAC(PlaneDetection):
             if file_path.is_file(): file_path.unlink() 
 
             with file_path.open('wb') as fp:
-               pickle.dump(self.eqs, fp)
+                pickle.dump(self.eqs, fp)
         else:
             raise ValueError("No plane equations were extracted!")
     
     def display_final_pc(self):
+        """
+        Displays the final point cloud
+        :return:
+        """
         if not self.pcd_out:
             raise ValueError("You try to display an empty point cloud!")
         

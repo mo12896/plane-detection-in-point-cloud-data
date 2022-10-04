@@ -9,12 +9,12 @@ class DataLoader(ABC):
     """Data Loader Interface"""
 
     @abstractmethod
-    def load_data(self, file: str):
+    def load_data(self, filename: str):
         """Standard method to load data"""
-        pass
 
 
-class DataLoader_STD(DataLoader):
+class DataLoaderSTD(DataLoader):
+    """Standard Data Loader"""
     def __init__(self, dir_path: Path):
         self.dir_path = dir_path
 
@@ -25,7 +25,8 @@ class DataLoader_STD(DataLoader):
         return pcd
     
 
-class DataLoader_DS(DataLoader):
+class DataLoaderDS(DataLoader):
+    """Data Loader including a downsampling method"""
     def __init__(self,
                  dir_path: Path,
                  down_params: dict() = {},

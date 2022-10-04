@@ -18,13 +18,16 @@ class Context:
 
     @property
     def strategy(self):
+        """Display the strategy"""
         return self._strategy
 
     @strategy.setter
     def strategy(self, strategy: OutlierRemoval):
+        """Set the strategy"""
         self._strategy = strategy
 
-    def run(self, filename, debug: bool = False):
+    def run(self, filename):
+        """Run the outlier removal strategy"""
         cl, _ = self._strategy.remove_outliers(filename)
         if not cl:
             raise ValueError("You try to display an empty point cloud!")
@@ -37,15 +40,14 @@ class Context:
 
 # Interface for outlier removal algorithms
 class OutlierRemoval(ABC):
-    def __init__(self, *args, **kwargs):
-        super(OutlierRemoval, self).__init__(*args, **kwargs)
+    """Implementation of the OutlierRemoval Interface"""
 
     @abstractmethod
     def remove_outliers(self, filename: str):
-        pass
-
+        """Remove Outlier from a PointCloud"""
 
 class StatisticalOutlierRemoval(OutlierRemoval):
+    """Removes outliers using statistical analysis"""
     def __init__(self,
                  out_dir: Path, 
                  dataloader: DataLoader,
@@ -61,8 +63,9 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         print("Statistical outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
-        except:
+        except Exception as exc:
             print(f"File {filename} could not be loaded!")
+            print(exc)
 
         cl, ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
                                                            std_ratio=self.std_ratio)
@@ -71,13 +74,15 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         try:
             if not data_path.is_file():
                 o3d.io.write_point_cloud(str(data_path), cl)
-        except:
+        except Exception as exc:
             print(f"File {filename} could not be written!")
+            print(exc)
 
         return cl, ind
 
 
 class RadiusOutlierRemoval(OutlierRemoval):
+    """Removes outliers within a provided radius"""
     def __init__(self,
                  out_dir: Path, 
                  dataloader: DataLoader,
@@ -93,8 +98,9 @@ class RadiusOutlierRemoval(OutlierRemoval):
         print("Radius outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
-        except:
+        except Exception as exc:
             print(f"File {filename} could not be loaded!")
+            print(exc)
 
         cl, ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
                                                       radius=self.radius)
@@ -103,8 +109,9 @@ class RadiusOutlierRemoval(OutlierRemoval):
         try:
             if not data_path.is_file():
                 o3d.io.write_point_cloud(str(data_path), cl)
-        except:
-            print(f"File {filename} could not be written!")      
+        except Exception as exc:
+            print(f"File {filename} could not be written!")
+            print(exc)   
 
         return cl, ind
 
