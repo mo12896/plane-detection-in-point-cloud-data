@@ -42,7 +42,7 @@ class Context:
 
 # Interface for outlier removal algorithms
 class OutlierRemoval(ABC):
-    """Implementation of the OutlierRemoval Interface"""
+    """Abstract Class of Outlier Removal"""
 
     @abstractmethod
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:

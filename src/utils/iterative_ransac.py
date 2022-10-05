@@ -15,7 +15,7 @@ from .dataset import DataLoader
 
 
 class PlaneDetection(ABC):
-    """Plane Detection Interface"""
+    """Abstract Class of Plane Detection"""
 
     @abstractmethod
     def detect_planes(self, filename: str) -> PointCloud:
@@ -43,13 +43,15 @@ class IterativeRANSAC(PlaneDetection):
 
     def __init__(self,
                  dataloader: DataLoader,
-                 data_dir: Path, 
+                 ransac: pyrsc.Plane,
+                 out_dir: Path, 
                  ransac_params: Dict[str, float],
                  debug: bool = False,
                  store: bool = False):
 
         self.dataloader = dataloader
-        self.data_dir = data_dir
+        self.out_dir = out_dir
+        self.ransac = ransac
         self.plane_size = ransac_params['PLANE_SIZE']
         self.thresh = ransac_params['THRESH']
         self.store = store
@@ -69,8 +71,7 @@ class IterativeRANSAC(PlaneDetection):
         plane_counter = 0
         while True:
             # Find best plane using RANSAC
-            plane = pyrsc.Plane()
-            best_eq, best_inliers = plane.fit(points, self.thresh)
+            best_eq, best_inliers = self.ransac.fit(points, self.thresh)
 
             # Only remove planes larger than size heuristic
             if len(best_inliers) < self.plane_size:
@@ -116,7 +117,7 @@ class IterativeRANSAC(PlaneDetection):
         :param filename:
         :return:
         """
-        data_path = self.data_dir / filename
+        data_path = self.out_dir / filename
         if not data_path.is_file():
             o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 

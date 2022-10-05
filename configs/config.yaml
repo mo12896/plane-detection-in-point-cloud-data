@@ -1,7 +1,7 @@
 DEBUG: True
 VERBOSE: False
 # set 'test' for debugging or 'raw' for production
-DATASET: 'raw'
+DATASET: 'RAW'
 
 DOWN:
   # point cloud downsampling

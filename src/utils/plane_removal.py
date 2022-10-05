@@ -13,7 +13,7 @@ from .dataset import DataLoader
 
 
 class PlaneRemoval(ABC):
-    """Interface for removing detected planes"""
+    """Abstract Class for removing detected planes"""
 
     @abstractmethod
     def remove_planes(self, filename: str) -> PointCloud:
@@ -22,6 +22,7 @@ class PlaneRemoval(ABC):
     @abstractmethod
     def display_final_pc(self) -> None:
         """Display the final point cloud"""
+        
 
 class PlaneRemovalAll(PlaneRemoval):
     """

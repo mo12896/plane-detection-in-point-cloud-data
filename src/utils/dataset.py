@@ -8,7 +8,7 @@ from open3d.cpu.pybind.geometry import PointCloud
 
 
 class DataLoader(ABC):
-    """Data Loader Interface"""
+    """Abstract Class of Data Loader"""
 
     @abstractmethod
     def load_data(self, filename: str) -> PointCloud:

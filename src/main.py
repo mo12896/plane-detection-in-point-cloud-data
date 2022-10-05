@@ -4,7 +4,7 @@ import os
 from multiprocessing import Pool
 from argparse import ArgumentParser
 from enum import Enum, auto
-from pathlib import Path
+import pyransac3d as pyrsc
 
 import system_setup as setup
 from utils.iterative_ransac import IterativeRANSAC
@@ -20,8 +20,8 @@ pc_formats = ('xyz', 'xyzn', 'xyzrgb', 'pts', 'ply', 'pcd')
 class Mode(Enum):
     """Point cloud Folder to choose from."""
 
-    TEST = "test"
-    RAW = "raw"
+    TEST = auto()
+    RAW = auto()
 
 
 # Define the config file to be used
@@ -42,17 +42,17 @@ config_file = args.config + '.yaml'
 config_path = setup.CONFIG_DIR / config_file
 
 # Parse the config.yaml into a python dicts
-#with open(config_path, 'r') as stream:
 try:
     configs = yaml.safe_load(config_path.read_text())
     print("Loaded config file!")
 except yaml.YAMLError as exc:
     print(exc)
 
+
 # Set up variables
-if configs['DATASET'] == Mode.RAW.value:
+if configs['DATASET'] == Mode.RAW.name:
     raw_data_dir = setup.RAW_DATA_DIR
-elif configs['DATASET'] == Mode.TEST.value:
+elif configs['DATASET'] == Mode.TEST.name:
     raw_data_dir = setup.TEST_DATA_DIR
 else:
     raise ValueError('The chosen data mode does not exist!')
@@ -78,9 +78,12 @@ data = DataLoaderDS(
     verbose=configs['VERBOSE']
 )
 
+ransac = pyrsc.Plane()
+
 ransac = IterativeRANSAC(
     dataloader=data,
-    data_dir=int_data_dir,
+    ransac=ransac,
+    out_dir=int_data_dir,
     ransac_params=configs['RANSAC'],
     debug=configs['DEBUG']
 )
