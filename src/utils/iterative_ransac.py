@@ -29,6 +29,7 @@ class PlaneDetection(ABC):
     def display_final_pc(self) -> None:
         """Display Final PointCloud"""
 
+
 class IterativeRANSAC(PlaneDetection):
     """
     Iterative RANSAC algorithm to detect n planes based on minimal plane size, 
@@ -60,7 +61,6 @@ class IterativeRANSAC(PlaneDetection):
         try:
             cloud = self.dataloader.load_data(filename)
         except Exception as exc:
-            print(f"File {filename} could not be loaded!")
             print(exc)
 
         print("Iterative RANSAC...")
@@ -135,7 +135,6 @@ class IterativeRANSAC(PlaneDetection):
             with file_path.open('wb') as fp:
                 pickle.dump(self.eqs, fp)
         except Exception as exc:
-            print("No plane equations were extracted!")
             print(exc)
     
     def display_final_pc(self) -> None:

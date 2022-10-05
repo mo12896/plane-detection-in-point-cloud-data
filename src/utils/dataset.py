@@ -59,7 +59,7 @@ class DataLoaderDS(DataLoader):
 
         while len(cloud.points) > self.large_pc and self.voxel_size:
             cloud = cloud.voxel_down_sample(voxel_size=self.voxel_size)
-            self.voxel_size = self.voxel_size + self.voxel_step
+            self.voxel_size += self.voxel_step
 
             print(f"'{filename}' has {len(cloud.points)} points after downsampling!")
 

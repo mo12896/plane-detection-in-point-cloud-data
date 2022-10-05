@@ -45,7 +45,7 @@ class OutlierRemoval(ABC):
     """Implementation of the OutlierRemoval Interface"""
 
     @abstractmethod
-    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
         """Remove Outlier from a PointCloud"""
 
 
@@ -62,12 +62,11 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         self.std_ratio = out_params['STD_RATIO']
 
     @timer
-    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
         print("Statistical outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
         except Exception as exc:
-            print(f"File {filename} could not be loaded!")
             print(exc)
 
         cl, ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
@@ -78,7 +77,6 @@ class StatisticalOutlierRemoval(OutlierRemoval):
             if not data_path.is_file():
                 o3d.io.write_point_cloud(str(data_path), cl)
         except Exception as exc:
-            print(f"File {filename} could not be written!")
             print(exc)
 
         return (cl, ind)
@@ -97,12 +95,11 @@ class RadiusOutlierRemoval(OutlierRemoval):
         self.radius = out_params['RADIUS']
 
     @timer
-    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List]:
+    def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
         print("Radius outlier removal...")
         try:
             pcd = self.dataloader.load_data(filename)
         except Exception as exc:
-            print(f"File {filename} could not be loaded!")
             print(exc)
 
         cl, ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
@@ -113,7 +110,6 @@ class RadiusOutlierRemoval(OutlierRemoval):
             if not data_path.is_file():
                 o3d.io.write_point_cloud(str(data_path), cl)
         except Exception as exc:
-            print(f"File {filename} could not be written!")
             print(exc)   
 
         return (cl, ind)

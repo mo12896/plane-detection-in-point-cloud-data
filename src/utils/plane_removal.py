@@ -51,7 +51,6 @@ class PlaneRemovalAll(PlaneRemoval):
         try:
             cloud = self.dataloader.load_data(filename)
         except Exception as exc:
-            print(f"File {filename} could not be loaded!")
             print(exc)
 
         # Read the equations as python list
@@ -62,7 +61,6 @@ class PlaneRemovalAll(PlaneRemoval):
             with eqs_path.open('rb') as fp:
                best_eqs = pickle.load(fp)
         except Exception as exc:
-            print(f"File {eqs} could not be loaded!")
             print(exc)
 
         pts = np.asarray(cloud.points)
@@ -83,7 +81,6 @@ class PlaneRemovalAll(PlaneRemoval):
             ind = np.where(dists < 0.01)[0]
             self.pcd_out = cloud.select_by_index(ind)
         except Exception as exc:
-            print("No point cloud was generated!")
             print(exc)
 
         # Store intermediate point cloud data
