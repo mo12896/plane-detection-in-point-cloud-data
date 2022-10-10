@@ -113,20 +113,10 @@ class IterativeRANSAC(PlaneDetection):
 
         # Store intermediate point cloud data
         if self.store:
-            self._save_pcs(filename)
+            self.save_pcs(filename, self.out_dir, self.pcd_out)
 
         print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
-
-    def _save_pcs(self, filename) -> None:
-        """
-        Saves point cloud data to a file
-        :param filename:
-        :return:
-        """
-        data_path = self.out_dir / filename
-        if not data_path.is_file():
-            o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 
     def store_best_eqs(self, filename: str) -> None:
         """

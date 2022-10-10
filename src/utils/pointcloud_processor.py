@@ -1,12 +1,19 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 
 
 class PointCloudProcessor(ABC):
     """Abstract base class for processing point clouds"""
 
-    def display_pointcloud(self, pcd_out) -> None:
+    def save_pcs(self, filename: str, out_dir: str, pcd_out: PointCloud) -> None:
+        """Saves point cloud data to a file"""
+        data_path = out_dir / filename
+        if not data_path.is_file():
+            o3d.io.write_point_cloud(str(data_path), pcd_out)
+
+    def display_pointcloud(self, pcd_out: PointCloud) -> None:
         """
         Displays the final point cloud
         :return:

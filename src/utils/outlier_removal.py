@@ -76,10 +76,8 @@ class StatisticalOutlierRemoval(OutlierRemoval):
             nb_neighbors=self.nb_neighbors, std_ratio=self.std_ratio
         )
 
-        data_path = self.out_dir / filename
         try:
-            if not data_path.is_file():
-                o3d.io.write_point_cloud(str(data_path), cl)
+            self.save_pcs(filename, self.out_dir, cl)
         except Exception as exc:
             print(exc)
 
@@ -110,10 +108,8 @@ class RadiusOutlierRemoval(OutlierRemoval):
             nb_points=self.nb_points, radius=self.radius
         )
 
-        data_path = self.out_dir / filename
         try:
-            if not data_path.is_file():
-                o3d.io.write_point_cloud(str(data_path), cl)
+            self.save_pcs(filename, self.out_dir, cl)
         except Exception as exc:
             print(exc)
 

@@ -1,6 +1,6 @@
 """PlaneRemoval Interface and concrete implementation for removing all detected planes"""
 import pickle
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import Dict
 
@@ -23,8 +23,8 @@ class PlaneRemoval(PointCloudProcessor):
 
 class PlaneRemovalAll(PlaneRemoval):
     """
-    This the class for removing detected planes, based on the extracted plane equations from the
-    original point cloud data!
+    This the class for removing detected planes, based on the extracted plane equations
+    from the original point cloud data!
     """
 
     pcd_out = None
@@ -90,14 +90,6 @@ class PlaneRemovalAll(PlaneRemoval):
 
         # Store intermediate point cloud data
         if self.store:
-            self._save_pcs(filename)
+            self.save_pcs(filename, self.out_dir, self.pcd_out)
 
         return self.pcd_out
-
-    def _save_pcs(self, filename: str) -> None:
-        """Saves point cloud data to a file"""
-        data_path = self.out_dir / filename
-        if not data_path.is_file():
-            o3d.io.write_point_cloud(str(data_path), self.pcd_out)
-
-
