@@ -10,38 +10,38 @@ from open3d.cpu.pybind.geometry import PointCloud
 
 from .utils import remove_by_indices, timer
 from .dataset import DataLoader
+from .pointcloud_processor import PointCloudProcessor
 
 
-class PlaneRemoval(ABC):
+class PlaneRemoval(PointCloudProcessor):
     """Abstract Class for removing detected planes"""
 
     @abstractmethod
     def remove_planes(self, filename: str) -> PointCloud:
         """Remove detected planes"""
 
-    @abstractmethod
-    def display_final_pc(self) -> None:
-        """Display the final point cloud"""
-        
 
 class PlaneRemovalAll(PlaneRemoval):
     """
     This the class for removing detected planes, based on the extracted plane equations from the
     original point cloud data!
     """
+
     pcd_out = None
 
-    def __init__(self,
-                 out_dir: Path, 
-                 eqs_dir: Path, 
-                 dataloader: DataLoader, 
-                 remove_params: Dict[str, float],
-                 store: bool = True):
+    def __init__(
+        self,
+        out_dir: Path,
+        eqs_dir: Path,
+        dataloader: DataLoader,
+        remove_params: Dict[str, float],
+        store: bool = True,
+    ):
 
         self.dataloader = dataloader
         self.out_dir = out_dir
         self.eqs_dir = eqs_dir
-        self.thresh = remove_params['THRESH']
+        self.thresh = remove_params["THRESH"]
         self.store = store
 
     @timer
@@ -56,11 +56,11 @@ class PlaneRemovalAll(PlaneRemoval):
 
         # Read the equations as python list
         try:
-            eqs = filename.split('.')[0] + "_best_eqs"
+            eqs = filename.split(".")[0] + "_best_eqs"
             eqs_path = self.eqs_dir / eqs
-            
-            with eqs_path.open('rb') as fp:
-               best_eqs = pickle.load(fp)
+
+            with eqs_path.open("rb") as fp:
+                best_eqs = pickle.load(fp)
         except Exception as exc:
             print(exc)
 
@@ -68,8 +68,12 @@ class PlaneRemovalAll(PlaneRemoval):
 
         # Remove the planes from original point cloud
         for plane_eq in best_eqs:
-            dist_pts = (plane_eq[0] * pts[:, 0] + plane_eq[1] * pts[:, 1] + plane_eq[2] * pts[:, 2] + plane_eq[3]
-                      ) / np.sqrt(plane_eq[0] ** 2 + plane_eq[1] ** 2 + plane_eq[2] ** 2)
+            dist_pts = (
+                plane_eq[0] * pts[:, 0]
+                + plane_eq[1] * pts[:, 1]
+                + plane_eq[2] * pts[:, 2]
+                + plane_eq[3]
+            ) / np.sqrt(plane_eq[0] ** 2 + plane_eq[1] ** 2 + plane_eq[2] ** 2)
             inliers = np.where(np.abs(dist_pts) <= self.thresh)[0].tolist()
             pts = remove_by_indices(pts, inliers)
 
@@ -109,9 +113,3 @@ class PlaneRemovalAll(PlaneRemoval):
             raise ValueError("You try to display an empty point cloud!")
 
         o3d.visualization.draw_geometries([self.pcd_out])
-       
-
-
-
-
-

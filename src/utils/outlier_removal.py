@@ -8,6 +8,7 @@ from open3d.cpu.pybind.geometry import PointCloud
 
 from .utils import timer
 from .dataset import DataLoader
+from .pointcloud_processor import PointCloudProcessor
 
 
 class Context:
@@ -15,6 +16,7 @@ class Context:
     Implementation of the strategy pattern to call different algorithms
     for the outlier removal.
     """
+
     def __init__(self, strategy: OutlierRemoval):
         self._strategy = strategy
 
@@ -34,14 +36,14 @@ class Context:
         if not cl:
             raise ValueError("You try to display an empty point cloud!")
 
-        o3d.visualization.draw_geometries([cl])
+        self._strategy.display_pointcloud(cl)
         # TODO: Bug in implementation (malloc() error)
-        #if debug:
+        # if debug:
         #    display_in_out(cl, id)
 
 
 # Interface for outlier removal algorithms
-class OutlierRemoval(ABC):
+class OutlierRemoval(PointCloudProcessor):
     """Abstract Class of Outlier Removal"""
 
     @abstractmethod
@@ -51,15 +53,15 @@ class OutlierRemoval(ABC):
 
 class StatisticalOutlierRemoval(OutlierRemoval):
     """Removes outliers using statistical analysis"""
-    def __init__(self,
-                 out_dir: Path, 
-                 dataloader: DataLoader,
-                 out_params: Dict[str, float]):
+
+    def __init__(
+        self, out_dir: Path, dataloader: DataLoader, out_params: Dict[str, float]
+    ):
 
         self.out_dir = out_dir
         self.dataloader = dataloader
-        self.nb_neighbors = out_params['NB_NEIGHBORS']
-        self.std_ratio = out_params['STD_RATIO']
+        self.nb_neighbors = out_params["NB_NEIGHBORS"]
+        self.std_ratio = out_params["STD_RATIO"]
 
     @timer
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
@@ -69,8 +71,9 @@ class StatisticalOutlierRemoval(OutlierRemoval):
         except Exception as exc:
             print(exc)
 
-        cl, ind = pcd.remove_statistical_outlier(nb_neighbors=self.nb_neighbors,
-                                                           std_ratio=self.std_ratio)
+        cl, ind = pcd.remove_statistical_outlier(
+            nb_neighbors=self.nb_neighbors, std_ratio=self.std_ratio
+        )
 
         data_path = self.out_dir / filename
         try:
@@ -84,15 +87,15 @@ class StatisticalOutlierRemoval(OutlierRemoval):
 
 class RadiusOutlierRemoval(OutlierRemoval):
     """Removes outliers within a provided radius"""
-    def __init__(self,
-                 out_dir: Path, 
-                 dataloader: DataLoader,
-                 out_params: Dict[str, float]):
+
+    def __init__(
+        self, out_dir: Path, dataloader: DataLoader, out_params: Dict[str, float]
+    ):
 
         self.out_dir = out_dir
         self.dataloader = dataloader
-        self.nb_points = out_params['NB_POINTS']
-        self.radius = out_params['RADIUS']
+        self.nb_points = out_params["NB_POINTS"]
+        self.radius = out_params["RADIUS"]
 
     @timer
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
@@ -102,15 +105,15 @@ class RadiusOutlierRemoval(OutlierRemoval):
         except Exception as exc:
             print(exc)
 
-        cl, ind = pcd.remove_radius_outlier(nb_points=self.nb_points,
-                                                      radius=self.radius)
+        cl, ind = pcd.remove_radius_outlier(
+            nb_points=self.nb_points, radius=self.radius
+        )
 
         data_path = self.out_dir / filename
         try:
             if not data_path.is_file():
                 o3d.io.write_point_cloud(str(data_path), cl)
         except Exception as exc:
-            print(exc)   
+            print(exc)
 
         return (cl, ind)
-

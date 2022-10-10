@@ -12,9 +12,10 @@ import pyransac3d as pyrsc
 import system_setup as setup
 from .utils import timer
 from .dataset import DataLoader
+from .pointcloud_processor import PointCloudProcessor
 
 
-class PlaneDetection(ABC):
+class PlaneDetection(PointCloudProcessor):
     """Abstract Class of Plane Detection"""
 
     @abstractmethod
@@ -25,14 +26,10 @@ class PlaneDetection(ABC):
     def store_best_eqs(self, filename: str) -> None:
         """Store Best Plane Equations"""
 
-    @abstractmethod
-    def display_final_pc(self) -> None:
-        """Display Final PointCloud"""
-
 
 class IterativeRANSAC(PlaneDetection):
     """
-    Iterative RANSAC algorithm to detect n planes based on minimal plane size, 
+    Iterative RANSAC algorithm to detect n planes based on minimal plane size,
     set by the user.
     """
 
@@ -41,19 +38,21 @@ class IterativeRANSAC(PlaneDetection):
     # For debugging only!
     planes = []
 
-    def __init__(self,
-                 dataloader: DataLoader,
-                 ransac: pyrsc.Plane,
-                 out_dir: Path, 
-                 ransac_params: Dict[str, float],
-                 debug: bool = False,
-                 store: bool = False):
+    def __init__(
+        self,
+        dataloader: DataLoader,
+        ransac: pyrsc.Plane,
+        out_dir: Path,
+        ransac_params: Dict[str, float],
+        debug: bool = False,
+        store: bool = False,
+    ):
 
         self.dataloader = dataloader
         self.out_dir = out_dir
         self.ransac = ransac
-        self.plane_size = ransac_params['PLANE_SIZE']
-        self.thresh = ransac_params['THRESH']
+        self.plane_size = ransac_params["PLANE_SIZE"]
+        self.thresh = ransac_params["THRESH"]
         self.store = store
         self.debug = debug
 
@@ -106,7 +105,8 @@ class IterativeRANSAC(PlaneDetection):
         self.pcd_out = cloud.select_by_index(ind)
 
         # Store intermediate point cloud data
-        if self.store: self._save_pcs(filename)
+        if self.store:
+            self._save_pcs(filename)
 
         print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
@@ -128,25 +128,13 @@ class IterativeRANSAC(PlaneDetection):
         :return:
         """
         try:
-            filename = filename.split('.')[0] + "_best_eqs"
+            filename = filename.split(".")[0] + "_best_eqs"
             file_path = setup.LOGS_DIR / filename
 
-            if file_path.is_file(): file_path.unlink() 
+            if file_path.is_file():
+                file_path.unlink()
 
-            with file_path.open('wb') as fp:
+            with file_path.open("wb") as fp:
                 pickle.dump(self.eqs, fp)
         except Exception as exc:
             print(exc)
-    
-    def display_final_pc(self) -> None:
-        """
-        Displays the final point cloud
-        :return:
-        """
-        if not self.pcd_out:
-            raise ValueError("You try to display an empty point cloud!")
-        
-        o3d.visualization.draw_geometries([self.pcd_out])
-
-
-

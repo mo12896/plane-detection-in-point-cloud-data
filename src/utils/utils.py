@@ -46,4 +46,5 @@ def timer(func):
         stop = perf_counter()
         print(f"Elapsed time of function {func.__name__!r}: {stop-start} seconds!")
         return out
+
     return wrapper_timer

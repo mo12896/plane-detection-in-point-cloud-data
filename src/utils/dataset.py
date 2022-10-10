@@ -17,27 +17,28 @@ class DataLoader(ABC):
 
 class DataLoaderSTD(DataLoader):
     """Standard Data Loader"""
+
     def __init__(self, dir_path: Path):
         self.dir_path = dir_path
 
     def load_data(self, filename: str) -> PointCloud:
         file_path = self.dir_path / filename
         pcd = o3d.io.read_point_cloud(str(file_path))
-        
+
         return pcd
-    
+
 
 class DataLoaderDS(DataLoader):
     """Data Loader including a downsampling method"""
-    def __init__(self,
-                 dir_path: Path,
-                 down_params: Dict[str, float],
-                 verbose: bool = False):
-                 
+
+    def __init__(
+        self, dir_path: Path, down_params: Dict[str, float], verbose: bool = False
+    ):
+
         self.dir_path = dir_path
-        self.large_pc = down_params['LARGE_PC']
-        self.voxel_size = down_params['VOXEL_SIZE']
-        self.voxel_step = down_params['VOXEL_STEP']
+        self.large_pc = down_params["LARGE_PC"]
+        self.voxel_size = down_params["VOXEL_SIZE"]
+        self.voxel_step = down_params["VOXEL_STEP"]
         self.verbose = verbose
 
     def load_data(self, filename: str) -> PointCloud:
@@ -64,5 +65,3 @@ class DataLoaderDS(DataLoader):
             print(f"'{filename}' has {len(cloud.points)} points after downsampling!")
 
         return cloud
-
-
