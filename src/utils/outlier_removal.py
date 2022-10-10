@@ -8,7 +8,7 @@ import open3d as o3d
 from open3d.cpu.pybind.geometry import PointCloud
 
 from .utils import timer
-from .dataset import DataLoader
+from .dataloader import DataLoader
 from .pointcloud_processor import PointCloudProcessor
 
 

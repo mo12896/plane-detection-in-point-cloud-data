@@ -7,8 +7,8 @@ from enum import Enum, auto
 import pyransac3d as pyrsc
 
 import system_setup as setup
-from utils.iterative_ransac import IterativeRANSAC
-from utils.dataset import DataLoaderDS, DataLoaderSTD
+from utils.plane_detection import IterativeRANSAC
+from utils.dataloader import DataLoaderDS, DataLoaderSTD
 from utils.outlier_removal import (
     Context,
     StatisticalOutlierRemoval,
