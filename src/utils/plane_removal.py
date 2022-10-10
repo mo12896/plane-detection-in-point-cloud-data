@@ -95,11 +95,7 @@ class PlaneRemovalAll(PlaneRemoval):
         return self.pcd_out
 
     def _save_pcs(self, filename: str) -> None:
-        """
-        Saves point cloud data to a file
-        :param filename:
-        :return:
-        """
+        """Saves point cloud data to a file"""
         data_path = self.out_dir / filename
         if not data_path.is_file():
             o3d.io.write_point_cloud(str(data_path), self.pcd_out)

@@ -1,6 +1,6 @@
 """Plane Detection Interface and concrete RANSAC implementation"""
 import pickle
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import Dict
 
@@ -58,7 +58,14 @@ class IterativeRANSAC(PlaneDetection):
 
     @timer
     def detect_planes(self, filename: str) -> PointCloud:
-        """Detect planes using an iterative RANSAC algorithm"""
+        """Detect planes using an iterative RANSAC algorithm
+
+        Args:
+            filename (str): path to point cloud file
+
+        Returns:
+            PointCloud: downsampled point cloud without detected planes
+        """
         try:
             cloud = self.dataloader.load_data(filename)
         except Exception as exc:

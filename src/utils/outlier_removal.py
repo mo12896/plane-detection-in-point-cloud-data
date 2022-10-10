@@ -1,5 +1,6 @@
+"""Outlier Removal Stragies"""
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import Tuple, List, Dict
 
