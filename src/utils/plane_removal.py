@@ -100,12 +100,4 @@ class PlaneRemovalAll(PlaneRemoval):
         if not data_path.is_file():
             o3d.io.write_point_cloud(str(data_path), self.pcd_out)
 
-    def display_final_pc(self) -> None:
-        """
-        Displays the final point cloud
-        :return:
-        """
-        if not self.pcd_out:
-            raise ValueError("You try to display an empty point cloud!")
 
-        o3d.visualization.draw_geometries([self.pcd_out])
