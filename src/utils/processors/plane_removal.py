@@ -8,8 +8,8 @@ import numpy as np
 import open3d as o3d
 from open3d.cpu.pybind.geometry import PointCloud
 
-from .utils import remove_by_indices, timer
-from .dataloader import DataLoader
+from utils.utils import remove_by_indices, timer
+from utils.dataloader import DataLoader
 from .pointcloud_processor import PointCloudProcessor
 
 

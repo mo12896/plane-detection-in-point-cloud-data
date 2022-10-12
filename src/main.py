@@ -1,5 +1,3 @@
-from ast import PyCF_ONLY_AST
-import pstats
 import yaml
 import os
 
@@ -9,14 +7,14 @@ from argparse import ArgumentParser
 import pyransac3d as pyrsc
 
 import system_setup as setup
-from utils.plane_detection import IterativeRANSAC
-from utils.dataloader import DataLoaderDS, DataLoaderSTD
-from utils.outlier_removal import (
+from utils.processors.plane_detection import IterativeRANSAC
+from utils.processors.plane_removal import PlaneRemovalAll
+from utils.processors.outlier_removal import (
     Context,
     StatisticalOutlierRemoval,
     RadiusOutlierRemoval,
 )
-from utils.plane_removal import PlaneRemovalAll
+from utils.dataloader import DataLoaderDS, DataLoaderSTD
 from utils.utils import timer
 from utils.runner import Runner, PCFormats
 from utils.enums import Mode

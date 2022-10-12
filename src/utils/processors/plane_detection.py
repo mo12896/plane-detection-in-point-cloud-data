@@ -10,8 +10,8 @@ import numpy as np
 import pyransac3d as pyrsc
 
 import system_setup as setup
-from .utils import timer
-from .dataloader import DataLoader
+from utils.utils import timer
+from utils.dataloader import DataLoader
 from .pointcloud_processor import PointCloudProcessor
 
 
