@@ -23,7 +23,7 @@ class PlaneDetection(PointCloudProcessor):
         """Plane Detection"""
 
     @abstractmethod
-    def store_best_eqs(self, filename: str) -> None:
+    def _store_best_eqs(self, filename: str) -> None:
         """Store Best Plane Equations"""
 
 
@@ -60,19 +60,16 @@ class IterativeRANSAC(PlaneDetection):
         """Detect planes using an iterative RANSAC algorithm
 
         Args:
-            filename (str): path to point cloud file
+            filename (str): path to raw point cloud file
 
         Returns:
             PointCloud: downsampled point cloud without detected planes
         """
-        try:
-            cloud: PointCloud = self.dataloader.load_data(filename)
-        except Exception as exc:
-            print(exc)
 
-        print("Iterative RANSAC...")
+        cloud: PointCloud = self.dataloader.load_data(filename)
         points = np.asarray(cloud.points)
 
+        print("Iterative RANSAC...")
         plane_counter = 0
         while True:
             # Find best plane using RANSAC
@@ -99,29 +96,27 @@ class IterativeRANSAC(PlaneDetection):
         if self.debug and self.planes:
             print("Debugging...")
             o3d.visualization.draw_geometries(self.planes)
-        else:
-            raise ValueError("Debugging is not possible!")
 
         # Retain color information for final point cloud
         if not self.pcd_out:
             raise ValueError("No point cloud was generated!")
-
-        dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
-        ind = np.where(dists < 0.01)[0]
-        self.pcd_out = cloud.select_by_index(ind)
+        self.pcd_out = self._restore_color(cloud, self.pcd_out)
 
         # Store intermediate point cloud data
         if self.store:
             self.save_pcs(filename, self.out_dir, self.pcd_out)
 
+        # Store best plane equations
+        self._store_best_eqs(filename)
+
         print(f"Identified {plane_counter} plane(s) in point cloud '{filename}'")
         return self.pcd_out
 
-    def store_best_eqs(self, filename: str) -> None:
-        """
-        Saves best plane equations in a pickle file
-        :param filename:
-        :return:
+    def _store_best_eqs(self, filename: str) -> None:
+        """Saves best plane equations in a pickle file
+
+        Args:
+            filename (str): filename as blueprint for pickle file
         """
         try:
             filename = filename.split(".")[0] + "_best_eqs"
@@ -134,3 +129,22 @@ class IterativeRANSAC(PlaneDetection):
                 pickle.dump(self.eqs, fp)
         except Exception as exc:
             print(exc)
+
+    @staticmethod
+    def _restore_color(color_cloud: PointCloud, raw_cloud: PointCloud) -> PointCloud:
+        """Restores color of raw point cloud
+
+        Args:
+            color_cloud (PointCloud): colorful source point cloud
+            raw_cloud (PointCloud): unicolor target point cloud
+
+        Returns:
+            PointCloud: colorfied target point cloud
+        """
+        try:
+            dists = np.array(color_cloud.compute_point_cloud_distance(raw_cloud))
+            ind = np.where(dists < 0.01)[0]
+            raw_cloud = color_cloud.select_by_index(ind)
+        except Exception as exc:
+            print(exc)
+        return raw_cloud

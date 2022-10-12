@@ -20,6 +20,10 @@ class PlaneRemoval(PointCloudProcessor):
     def remove_planes(self, filename: str) -> PointCloud:
         """Remove detected planes"""
 
+    @abstractmethod
+    def _load_plane_eqs(self, filename: str) -> List[List[Any]]:
+        """Load a list of detected plane equations"""
+
 
 class PlaneRemovalAll(PlaneRemoval):
     """
@@ -34,6 +38,7 @@ class PlaneRemovalAll(PlaneRemoval):
         dataloader: DataLoader,
         remove_params: Dict[str, float],
         store: bool = True,
+        # pcd_out=o3d.geometry.PointCloud(),
     ):
 
         self.dataloader = dataloader
@@ -45,27 +50,22 @@ class PlaneRemovalAll(PlaneRemoval):
 
     @timer
     def remove_planes(self, filename: str) -> PointCloud:
-        """Remove all planes based on heuristics set in the configuration file"""
-        print("Remove planes from original point cloud...")
-        # Read the point cloud from raw directory
-        try:
-            cloud: PointCloud = self.dataloader.load_data(filename)
-        except Exception as exc:
-            print(exc)
+        """Remove all planes based on stored plane equations in pickle file
 
-        # TODO: separate equation loader method
-        # Read the equations as python list
-        try:
-            eqs = filename.split(".")[0] + "_best_eqs"
-            eqs_path = self.eqs_dir / eqs
+        Args:
+            filename (str): path to raw point cloud file
 
-            with eqs_path.open("rb") as fp:
-                best_eqs: List[List[Any]] = pickle.load(fp)
-        except Exception as exc:
-            print(exc)
+        Returns:
+            PointCloud: raw point cloud without detected planes
+        """
 
+        # Load raw point cloud data and the best plane equations
+        cloud: PointCloud = self.dataloader.load_data(filename)
         pts = np.asarray(cloud.points)
 
+        best_eqs = self._load_plane_eqs(filename)
+
+        print("Remove planes from original point cloud...")
         # Remove the planes from original point cloud
         for plane_eq in best_eqs:
             dist_pts = (
@@ -77,19 +77,51 @@ class PlaneRemovalAll(PlaneRemoval):
             inliers = np.where(np.abs(dist_pts) <= self.thresh)[0].tolist()
             pts = remove_by_indices(pts, inliers)
 
+        # Generate point cloud data
         self.pcd_out = o3d.geometry.PointCloud()
         self.pcd_out.points = o3d.utility.Vector3dVector(pts)
-
-        # Retain color information for final point cloud
-        try:
-            dists = np.array(cloud.compute_point_cloud_distance(self.pcd_out))
-            ind = np.where(dists < 0.01)[0]
-            self.pcd_out = cloud.select_by_index(ind)
-        except Exception as exc:
-            print(exc)
+        self.pcd_out = self._restore_color(cloud, self.pcd_out)
 
         # Store intermediate point cloud data
         if self.store:
             self.save_pcs(filename, self.out_dir, self.pcd_out)
 
         return self.pcd_out
+
+    def _load_plane_eqs(self, filename: str) -> List[List[Any]]:
+        """Load plane equations from pickle file
+
+        Args:
+            filename (str): filename as blueprint for pickle file
+
+        Returns:
+            List[List[Any]]: list of best
+        """
+        try:
+            eqs = filename.split(".")[0] + "_best_eqs"
+            eqs_path = self.eqs_dir / eqs
+
+            with eqs_path.open("rb") as fp:
+                best_eqs: List[List[Any]] = pickle.load(fp)
+        except Exception as exc:
+            print(exc)
+        return best_eqs
+
+    @staticmethod
+    def _restore_color(color_cloud: PointCloud, raw_cloud: PointCloud) -> PointCloud:
+        """Restores color of raw point cloud
+
+        Args:
+            color_cloud (PointCloud): colorful source point cloud
+            raw_cloud (PointCloud): unicolor target point cloud
+
+        Returns:
+            PointCloud: colorfied target point cloud
+        """
+        try:
+            dists = np.array(color_cloud.compute_point_cloud_distance(raw_cloud))
+            ind = np.where(dists < 0.01)[0]
+            raw_cloud = color_cloud.select_by_index(ind)
+        except Exception as exc:
+            print(exc)
+        return raw_cloud

@@ -22,8 +22,19 @@ class DataLoaderSTD(DataLoader):
         self.dir_path = dir_path
 
     def load_data(self, filename: str) -> PointCloud:
-        file_path = self.dir_path / filename
-        pcd = o3d.io.read_point_cloud(str(file_path))
+        """Load point cloud data from specified file
+
+        Args:
+            filename (str): file of point cloud data
+
+        Returns:
+            PointCloud: point cloud
+        """
+        try:
+            file_path = self.dir_path / filename
+            pcd = o3d.io.read_point_cloud(str(file_path))
+        except Exception as exc:
+            print(exc)
 
         return pcd
 
@@ -42,6 +53,14 @@ class DataLoaderDS(DataLoader):
         self.verbose = verbose
 
     def load_data(self, filename: str) -> PointCloud:
+        """Load and downsample point cloud into memory
+
+        Args:
+            filename (str): file of raw point cloud data
+
+        Returns:
+            PointCloud: donwsampled point cloud
+        """
         file_path = self.dir_path / filename
         pcd = o3d.io.read_point_cloud(str(file_path))
 
@@ -54,14 +73,26 @@ class DataLoaderDS(DataLoader):
 
         return pcd_down
 
-    def _downsample_data(self, cloud, filename: str) -> PointCloud:
+    def _downsample_data(self, cloud: PointCloud, filename: str) -> PointCloud:
         """Down sample point cloud data based on the definition of a large pointcloud
-        and the speed of downsampling in the config file!"""
+        and the speed of downsampling in the config file!
 
-        while len(cloud.points) > self.large_pc and self.voxel_size:
-            cloud = cloud.voxel_down_sample(voxel_size=self.voxel_size)
-            self.voxel_size += self.voxel_step
+        Args:
+            cloud (PointCloud): input point cloud
+            filename (str): file of raw point cloud data
 
-            print(f"'{filename}' has {len(cloud.points)} points after downsampling!")
+        Returns:
+            PointCloud: donwsampled point cloud
+        """
+        try:
+            while len(cloud.points) > self.large_pc and self.voxel_size:
+                cloud = cloud.voxel_down_sample(voxel_size=self.voxel_size)
+                self.voxel_size += self.voxel_step
+
+                print(
+                    f"'{filename}' has {len(cloud.points)} points after downsampling!"
+                )
+        except Exception as exc:
+            print(exc)
 
         return cloud

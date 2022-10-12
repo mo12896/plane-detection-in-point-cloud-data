@@ -23,16 +23,27 @@ class Context:
 
     @property
     def strategy(self):
-        """Display the strategy"""
+        """Get the strategy"""
         return self._strategy
 
     @strategy.setter
     def strategy(self, strategy: OutlierRemoval):
-        """Set the strategy"""
+        """Set the strategy
+
+        Args:
+            strategy (OutlierRemoval): Outlier Removal object
+        """
         self._strategy = strategy
 
-    def run(self, filename) -> None:
-        """Run the outlier removal strategy"""
+    def run(self, filename: str) -> None:
+        """Run the outlier removal strategy
+
+        Args:
+            filename (str): path to intermediate point cloud file
+
+        Raises:
+            ValueError: You try to display an empty point cloud!
+        """
         cl, _ = self._strategy.remove_outliers(filename)
         if not cl:
             raise ValueError("You try to display an empty point cloud!")
@@ -66,20 +77,23 @@ class StatisticalOutlierRemoval(OutlierRemoval):
 
     @timer
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
+        """Removes outliers based on statistical analysis
+
+        Args:
+            filename (str): path to intermediate point cloud file
+
+        Returns:
+            Tuple[PointCloud, List[int]]: final point cloud
+        """
         print("Statistical outlier removal...")
-        try:
-            pcd: PointCloud = self.dataloader.load_data(filename)
-        except Exception as exc:
-            print(exc)
+
+        pcd: PointCloud = self.dataloader.load_data(filename)
 
         cl, ind = pcd.remove_statistical_outlier(
             nb_neighbors=self.nb_neighbors, std_ratio=self.std_ratio
         )
 
-        try:
-            self.save_pcs(filename, self.out_dir, cl)
-        except Exception as exc:
-            print(exc)
+        self.save_pcs(filename, self.out_dir, cl)
 
         return (cl, ind)
 
@@ -98,19 +112,22 @@ class RadiusOutlierRemoval(OutlierRemoval):
 
     @timer
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
+        """Removes outliers within a provided radius
+
+        Args:
+            filename (str): path to intermediate point cloud file
+
+        Returns:
+            Tuple[PointCloud, List[int]]: final point cloud
+        """
         print("Radius outlier removal...")
-        try:
-            pcd: PointCloud = self.dataloader.load_data(filename)
-        except Exception as exc:
-            print(exc)
+
+        pcd: PointCloud = self.dataloader.load_data(filename)
 
         cl, ind = pcd.remove_radius_outlier(
             nb_points=self.nb_points, radius=self.radius
         )
 
-        try:
-            self.save_pcs(filename, self.out_dir, cl)
-        except Exception as exc:
-            print(exc)
+        self.save_pcs(filename, self.out_dir, cl)
 
         return (cl, ind)

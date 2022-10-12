@@ -35,7 +35,7 @@ def folder_cleanup(folders: List[Path]) -> None:
             for f in folder.iterdir():
                 filename = folder / f
                 filename.unlink()
-        print("Cleaned up relveant data folders!")
+        print("Cleaned up relevant data folders!")
     except Exception as exc:
         print(exc)
 

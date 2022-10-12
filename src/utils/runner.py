@@ -29,17 +29,25 @@ class Runner:
         self.configs = configs
 
     def detect_plane(self, file: Any):
-        """Detect planes in a single point cloud"""
+        """Detect planes in a single point cloud
+
+        Args:
+            file (Any): file in raw directory
+        """
 
         filename = os.fsdecode(file)
         if filename.endswith(tuple([enum.name.lower() for enum in self.pc_formats])):
             cloud = self.plane_detector.detect_planes(filename)
-            self.plane_detector.store_best_eqs(filename)
+            # self.plane_detector.store_best_eqs(filename)
             if self.configs["VERBOSE"]:
                 self.plane_detector.display_pointcloud(cloud)
 
     def remove_plane(self, file: Any):
-        """Remove planes from a single point cloud"""
+        """Remove planes from a single point cloud
+
+        Args:
+            file (Any): file in raw directory
+        """
         filename = os.fsdecode(file)
         if filename.endswith(tuple([enum.name.lower() for enum in self.pc_formats])):
             cloud = self.plane_remover.remove_planes(filename)
