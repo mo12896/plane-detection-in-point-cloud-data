@@ -2,7 +2,7 @@
 import pickle
 from abc import abstractmethod
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any
 
 import open3d as o3d
 from open3d.cpu.pybind.geometry import PointCloud
@@ -33,15 +33,10 @@ class IterativeRANSAC(PlaneDetection):
     set by the user.
     """
 
-    pcd_out = None
-    eqs = []
-    # For debugging only!
-    planes = []
-
     def __init__(
         self,
         dataloader: DataLoader,
-        ransac: pyrsc.Plane,
+        geometry: pyrsc.Plane,
         out_dir: Path,
         ransac_params: Dict[str, float],
         debug: bool = False,
@@ -50,11 +45,15 @@ class IterativeRANSAC(PlaneDetection):
 
         self.dataloader = dataloader
         self.out_dir = out_dir
-        self.ransac = ransac
+        self.geometry = geometry
         self.plane_size = ransac_params["PLANE_SIZE"]
         self.thresh = ransac_params["THRESH"]
         self.store = store
         self.debug = debug
+        self.pcd_out: PointCloud = None
+        self.eqs: list[list[Any]] = []
+        # For debugging only!
+        self.planes: list[PointCloud] = []
 
     @timer
     def detect_planes(self, filename: str) -> PointCloud:
@@ -77,7 +76,7 @@ class IterativeRANSAC(PlaneDetection):
         plane_counter = 0
         while True:
             # Find best plane using RANSAC
-            best_eq, best_inliers = self.ransac.fit(points, self.thresh)
+            best_eq, best_inliers = self.geometry.fit(points, self.thresh)
 
             # Only remove planes larger than size heuristic
             if len(best_inliers) < self.plane_size:

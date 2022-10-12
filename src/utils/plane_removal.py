@@ -27,8 +27,6 @@ class PlaneRemovalAll(PlaneRemoval):
     from the original point cloud data!
     """
 
-    pcd_out = None
-
     def __init__(
         self,
         out_dir: Path,
@@ -43,6 +41,7 @@ class PlaneRemovalAll(PlaneRemoval):
         self.eqs_dir = eqs_dir
         self.thresh = remove_params["THRESH"]
         self.store = store
+        self.pcd_out: PointCloud = None
 
     @timer
     def remove_planes(self, filename: str) -> PointCloud:
@@ -54,6 +53,7 @@ class PlaneRemovalAll(PlaneRemoval):
         except Exception as exc:
             print(exc)
 
+        # TODO: separate equation loader method
         # Read the equations as python list
         try:
             eqs = filename.split(".")[0] + "_best_eqs"

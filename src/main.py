@@ -1,9 +1,11 @@
+from ast import PyCF_ONLY_AST
+import pstats
 import yaml
 import os
 
 from multiprocessing import Pool
 from argparse import ArgumentParser
-from enum import Enum, auto
+
 import pyransac3d as pyrsc
 
 import system_setup as setup
@@ -16,17 +18,8 @@ from utils.outlier_removal import (
 )
 from utils.plane_removal import PlaneRemovalAll
 from utils.utils import timer
-
-
-# Readable point cloud formats for Open3D
-pc_formats = ("xyz", "xyzn", "xyzrgb", "pts", "ply", "pcd")
-
-
-class Mode(Enum):
-    """Point cloud Folder to choose from."""
-
-    TEST = auto()
-    RAW = auto()
+from utils.runner import Runner, PCFormats
+from utils.enums import Mode
 
 
 # Define the config file to be used
@@ -84,11 +77,11 @@ data = DataLoaderDS(
     dir_path=raw_data_dir, down_params=configs["DOWN"], verbose=configs["VERBOSE"]
 )
 
-ransac = pyrsc.Plane()
+plane = pyrsc.Plane()
 
-ransac = IterativeRANSAC(
+plane_detector = IterativeRANSAC(
     dataloader=data,
-    ransac=ransac,
+    geometry=plane,
     out_dir=int_data_dir,
     ransac_params=configs["RANSAC"],
     debug=configs["DEBUG"],
@@ -96,46 +89,23 @@ ransac = IterativeRANSAC(
 
 raw_data = DataLoaderSTD(raw_data_dir)
 
-plane_remove = PlaneRemovalAll(
+plane_remover = PlaneRemovalAll(
     dataloader=raw_data,
     out_dir=int_data_dir,
     eqs_dir=logs_data_dir,
     remove_params=configs["PLANE_REMOVAL"],
 )
 
-pre_data = DataLoaderSTD(int_data_dir)
+int_data = DataLoaderSTD(int_data_dir)
 
-
-def detect_plane(file):
-    """Detect planes in a single point cloud"""
-
-    filename = os.fsdecode(file)
-    if filename.endswith(pc_formats):
-        cloud = ransac.detect_planes(filename)
-        ransac.store_best_eqs(filename)
-        if configs["VERBOSE"]:
-            ransac.display_pointcloud(cloud)
-
-
-def remove_plane(file):
-    """Remove planes from a single point cloud"""
-    filename = os.fsdecode(file)
-    if filename.endswith(pc_formats):
-        cloud = plane_remove.remove_planes(filename)
-
-        if configs["OUT_REMOVAL"]["USE"]:
-            if configs["VERBOSE"]:
-                plane_remove.display_pointcloud(cloud)
-            context = Context(
-                eval(configs["OUT_REMOVAL"]["METHOD"])(
-                    out_dir=final_data_dir,
-                    dataloader=pre_data,
-                    out_params=configs["OUT_REMOVAL"],
-                )
-            )
-            context.run(filename)
-        else:
-            plane_remove.display_pointcloud(cloud)
+runner = Runner(
+    plane_detector=plane_detector,
+    plane_remover=plane_remover,
+    int_data=int_data,
+    final_data=final_data_dir,
+    pc_formats=PCFormats,
+    configs=configs,
+)
 
 
 @timer
@@ -143,14 +113,14 @@ def main():
     """Multiprocessing interface for plane detection and removal"""
     # plane detection in downsampled point cloud data
     pool = Pool()
-    pool.map(detect_plane, os.listdir(directory))
+    pool.map(runner.detect_plane, os.listdir(directory))
     pool.close()
     pool.join()
 
     # plane removal from original point cloud data
     if configs["PLANE_REMOVAL"]["USE"]:
         pool_post = Pool()
-        pool_post.map(remove_plane, os.listdir(directory))
+        pool_post.map(runner.remove_plane, os.listdir(directory))
         pool_post.close()
         pool_post.join()
 
