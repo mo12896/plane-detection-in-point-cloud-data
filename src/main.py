@@ -72,37 +72,36 @@ if args.clean:
     for f in os.listdir(logs_data_dir):
         os.remove(logs_data_dir / f)
 
-# Instantiate relevant objects
-data = DataLoaderDS(
-    dir_path=raw_data_dir, down_params=configs["DOWN"], verbose=configs["VERBOSE"]
-)
-
-plane = pyrsc.Plane()
 
 plane_detector = IterativeRANSAC(
-    dataloader=data,
-    geometry=plane,
+    dataloader=DataLoaderDS(
+        dir_path=raw_data_dir, down_params=configs["DOWN"], verbose=configs["VERBOSE"]
+    ),
+    geometry=pyrsc.Plane(),
     out_dir=int_data_dir,
     ransac_params=configs["RANSAC"],
     debug=configs["DEBUG"],
 )
 
-raw_data = DataLoaderSTD(raw_data_dir)
-
 plane_remover = PlaneRemovalAll(
-    dataloader=raw_data,
+    dataloader=DataLoaderSTD(raw_data_dir),
     out_dir=int_data_dir,
     eqs_dir=logs_data_dir,
     remove_params=configs["PLANE_REMOVAL"],
 )
 
-int_data = DataLoaderSTD(int_data_dir)
+context = Context(
+    eval(configs["OUT_REMOVAL"]["METHOD"])(
+        out_dir=final_data_dir,
+        dataloader=DataLoaderSTD(int_data_dir),
+        out_params=configs["OUT_REMOVAL"],
+    )
+)
 
 runner = Runner(
     plane_detector=plane_detector,
     plane_remover=plane_remover,
-    int_data=int_data,
-    final_data=final_data_dir,
+    out_remover=context,
     pc_formats=PCFormats,
     configs=configs,
 )

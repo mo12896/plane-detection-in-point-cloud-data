@@ -10,6 +10,7 @@ class Mode(Enum):
 
 class PCFormats(Enum):
     """Readable point cloud formats for Open3D"""
+
     XYZ = auto()
     XYZN = auto()
     XYZRGBA = auto()

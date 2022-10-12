@@ -19,15 +19,13 @@ class Runner:
         self,
         plane_detector: PlaneDetection,
         plane_remover: PlaneRemoval,
-        int_data: DataLoaderSTD,
-        final_data: Path,
+        out_remover: Context,
         pc_formats: PCFormats,
         configs: Dict[str, float],
     ):
         self.plane_detector = plane_detector
         self.plane_remover = plane_remover
-        self.int_data = int_data
-        self.final_data = final_data
+        self.out_remover = out_remover
         self.pc_formats = pc_formats
         self.configs = configs
 
@@ -50,13 +48,6 @@ class Runner:
             if self.configs["OUT_REMOVAL"]["USE"]:
                 if self.configs["VERBOSE"]:
                     self.plane_remover.display_pointcloud(cloud)
-                context = Context(
-                    eval(self.configs["OUT_REMOVAL"]["METHOD"])(
-                        out_dir=self.final_data,
-                        dataloader=self.int_data,
-                        out_params=self.configs["OUT_REMOVAL"],
-                    )
-                )
-                context.run(filename)
+                self.out_remover.run(filename)
             else:
                 self.plane_remover.display_pointcloud(cloud)
