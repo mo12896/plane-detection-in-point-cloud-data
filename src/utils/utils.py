@@ -1,13 +1,71 @@
-import time
-
-import numpy as np
-import open3d as o3d
 from time import perf_counter
 import functools
+from typing import Callable, Any, List, Dict
+from multiprocessing import Pool
+
+from pathlib import Path
+import yaml
+import numpy as np
+import open3d as o3d
+from open3d.cpu.pybind.geometry import PointCloud
 
 
-def remove_by_indices(points: np.ndarray, indices: list):
-    """Remove sub-lists in nested lists by index"""
+def load_dict_from_yaml(filename: Path) -> Dict[str, Any]:
+    """Loads yaml file into python dictionary
+
+    Args:
+        folders (Path): Path to load configs from
+    """
+    try:
+        configs: Dict[str, Any] = yaml.safe_load(filename.read_text())
+        print("Loaded config file into python dict!")
+    except yaml.YAMLError as exc:
+        print(exc)
+    return configs
+
+
+def folder_cleanup(folders: List[Path]) -> None:
+    """Clean up multiple folders
+
+    Args:
+        folders (List[Path]): List of folders to cleanup
+    """
+    try:
+        for folder in folders:
+            for f in folder.iterdir():
+                filename = folder / f
+                filename.unlink()
+        print("Cleaned up relveant data folders!")
+    except Exception as exc:
+        print(exc)
+
+
+def multi_processing(function: Callable, files: Any) -> None:
+    """Utility function for multi-processing
+
+    Args:
+        function (Callable): Any function
+        files (Any): files on which to call the function
+    """
+    try:
+        pool = Pool()
+        pool.map(function, files)
+        pool.close()
+        pool.join()
+    except Exception as exc:
+        print(exc)
+
+
+def remove_by_indices(points: np.ndarray, indices: List[int]) -> np.ndarray:
+    """Remove sub-lists in nested lists by index
+
+    Args:
+        points (np.ndarray): Input point cloud
+        indices (List[int]): Indices of points to remove
+
+    Returns:
+        _type_: np.ndarray
+    """
     final_points = []
     index_set = set(indices)
     for idx, point in enumerate(points):
@@ -18,16 +76,25 @@ def remove_by_indices(points: np.ndarray, indices: list):
     return np.asarray(final_points)
 
 
-def display_pointcloud_from_array(points: np.ndarray):
-    """Display pointcloud from numpy array"""
+def display_pointcloud_from_array(points: np.ndarray) -> None:
+    """Display pointcloud from numpy array
+
+    Args:
+        points (np.ndarray): points to display
+    """
     pcd_out = o3d.geometry.PointCloud()
     pcd_out.points = o3d.utility.Vector3dVector(points)
     o3d.visualization.draw_geometries([pcd_out])
 
 
 # Taken form http://www.open3d.org/docs/latest/tutorial/Advanced/pointcloud_outlier_removal.html
-def display_inlier_outlier(cloud, ind):
-    """Visualize selected points and the non-selected points"""
+def display_inlier_outlier(cloud: PointCloud, ind: List[int]) -> None:
+    """Visualize selected points and the non-selected points
+
+    Args:
+        cloud (PointCloud): point cloud to display
+        ind (List[int]): indicies of selected points
+    """
     inlier_cloud = cloud.select_by_index(ind)
     outlier_cloud = cloud.select_by_index(ind, invert=True)
 
@@ -38,7 +105,14 @@ def display_inlier_outlier(cloud, ind):
 
 
 def timer(func):
-    """Timer decorator"""
+    """Timer decorator
+
+    Args:
+        func (_type_): Any function to be timed
+
+    Returns:
+        _type_: Callable
+    """
 
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
