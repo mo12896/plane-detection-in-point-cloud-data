@@ -1,3 +1,4 @@
+from typing import Dict
 import yaml
 import os
 
@@ -7,9 +8,9 @@ from argparse import ArgumentParser
 import pyransac3d as pyrsc
 
 import system_setup as setup
-from utils.processors.plane_detection import IterativeRANSAC
-from utils.processors.plane_removal import PlaneRemovalAll
-from utils.processors.outlier_removal import (
+from processors.plane_detection import IterativeRANSAC
+from processors.plane_removal import PlaneRemovalAll
+from processors.outlier_removal import (
     Context,
     StatisticalOutlierRemoval,
     RadiusOutlierRemoval,
@@ -42,7 +43,7 @@ config_path = setup.CONFIG_DIR / config_file
 
 # Parse the config.yaml into a python dicts
 try:
-    configs = yaml.safe_load(config_path.read_text())
+    configs: Dict = yaml.safe_load(config_path.read_text())
     print("Loaded config file!")
 except yaml.YAMLError as exc:
     print(exc)

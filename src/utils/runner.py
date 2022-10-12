@@ -1,9 +1,9 @@
 from typing import Dict, Any
 import os
 
-from .processors.plane_detection import PlaneDetection
-from .processors.plane_removal import PlaneRemoval
-from .processors.outlier_removal import (
+from processors.plane_detection import PlaneDetection
+from processors.plane_removal import PlaneRemoval
+from processors.outlier_removal import (
     Context,
     StatisticalOutlierRemoval,
     RadiusOutlierRemoval,
@@ -12,6 +12,8 @@ from .enums import PCFormats
 
 
 class Runner:
+    """Runner class for running the plane detection and removal"""
+
     def __init__(
         self,
         plane_detector: PlaneDetection,

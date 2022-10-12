@@ -68,7 +68,7 @@ class StatisticalOutlierRemoval(OutlierRemoval):
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
         print("Statistical outlier removal...")
         try:
-            pcd = self.dataloader.load_data(filename)
+            pcd: PointCloud = self.dataloader.load_data(filename)
         except Exception as exc:
             print(exc)
 
@@ -100,7 +100,7 @@ class RadiusOutlierRemoval(OutlierRemoval):
     def remove_outliers(self, filename: str) -> Tuple[PointCloud, List[int]]:
         print("Radius outlier removal...")
         try:
-            pcd = self.dataloader.load_data(filename)
+            pcd: PointCloud = self.dataloader.load_data(filename)
         except Exception as exc:
             print(exc)
 

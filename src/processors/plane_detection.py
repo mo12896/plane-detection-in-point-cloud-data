@@ -2,7 +2,7 @@
 import pickle
 from abc import abstractmethod
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import open3d as o3d
 from open3d.cpu.pybind.geometry import PointCloud
@@ -51,9 +51,9 @@ class IterativeRANSAC(PlaneDetection):
         self.store = store
         self.debug = debug
         self.pcd_out: PointCloud = None
-        self.eqs: list[list[Any]] = []
+        self.eqs: List[List[Any]] = []
         # For debugging only!
-        self.planes: list[PointCloud] = []
+        self.planes: List[PointCloud] = []
 
     @timer
     def detect_planes(self, filename: str) -> PointCloud:
@@ -66,7 +66,7 @@ class IterativeRANSAC(PlaneDetection):
             PointCloud: downsampled point cloud without detected planes
         """
         try:
-            cloud = self.dataloader.load_data(filename)
+            cloud: PointCloud = self.dataloader.load_data(filename)
         except Exception as exc:
             print(exc)
 

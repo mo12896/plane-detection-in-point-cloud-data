@@ -2,7 +2,7 @@
 import pickle
 from abc import abstractmethod
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any, List
 
 import numpy as np
 import open3d as o3d
@@ -49,7 +49,7 @@ class PlaneRemovalAll(PlaneRemoval):
         print("Remove planes from original point cloud...")
         # Read the point cloud from raw directory
         try:
-            cloud = self.dataloader.load_data(filename)
+            cloud: PointCloud = self.dataloader.load_data(filename)
         except Exception as exc:
             print(exc)
 
@@ -60,7 +60,7 @@ class PlaneRemovalAll(PlaneRemoval):
             eqs_path = self.eqs_dir / eqs
 
             with eqs_path.open("rb") as fp:
-                best_eqs = pickle.load(fp)
+                best_eqs: List[List[Any]] = pickle.load(fp)
         except Exception as exc:
             print(exc)
 

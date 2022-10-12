@@ -6,8 +6,8 @@ from time import perf_counter
 import functools
 
 
-# Remove sub-lists in nested lists by index
 def remove_by_indices(points: np.ndarray, indices: list):
+    """Remove sub-lists in nested lists by index"""
     final_points = []
     index_set = set(indices)
     for idx, point in enumerate(points):
@@ -18,16 +18,16 @@ def remove_by_indices(points: np.ndarray, indices: list):
     return np.asarray(final_points)
 
 
-# Display pointcloud from numpy array
 def display_pointcloud_from_array(points: np.ndarray):
+    """Display pointcloud from numpy array"""
     pcd_out = o3d.geometry.PointCloud()
     pcd_out.points = o3d.utility.Vector3dVector(points)
     o3d.visualization.draw_geometries([pcd_out])
 
 
-# Visualize selected points and the non-selected points
 # Taken form http://www.open3d.org/docs/latest/tutorial/Advanced/pointcloud_outlier_removal.html
-def display_inlier_outlier(cloud, ind, verbose=False):
+def display_inlier_outlier(cloud, ind):
+    """Visualize selected points and the non-selected points"""
     inlier_cloud = cloud.select_by_index(ind)
     outlier_cloud = cloud.select_by_index(ind, invert=True)
 
@@ -37,8 +37,9 @@ def display_inlier_outlier(cloud, ind, verbose=False):
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
 
 
-# Timer decorator
 def timer(func):
+    """Timer decorator"""
+
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
         start = perf_counter()
